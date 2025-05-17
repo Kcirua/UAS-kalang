@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../style.css';
 import Cloud from '../components/Cloud';
 import { Link } from 'react-router-dom';
@@ -9,18 +10,25 @@ import cloud4 from '../assets/cloud 4.png';
 import cloud5 from '../assets/cloud 5.png';
 import cloud6 from '../assets/cloud 6.png';
 import coinImage from '../assets/coin.png';
-import Star from '../components/Star';
+// import Star from '../components/Star';
 
 function MainPage() {
   const [gameTime, setGameTime] = useState(0);
   const [day, setDay] = useState(1);
   const gameSpeed = 5;
-  const starsContainerRef = useRef(null);
+  // const starsContainerRef = useRef(null);
   const secondsPerHour = 60;
   const hoursPerDay = 24;
   const secondsPerDay = secondsPerHour * hoursPerDay;
 
+  const [playerName, setPlayerName] = useState('Player');
+  const navigate = useNavigate();
+
   useEffect(() => {
+    const storedName = localStorage.getItem('playerName');
+    if (storedName) {
+      setPlayerName(storedName);
+    }
     const intervalId = setInterval(() => {
       setGameTime((prevTime) => prevTime + 1);
     }, 1000 / gameSpeed);
@@ -32,21 +40,24 @@ function MainPage() {
     if (gameTime > 0 && gameTime % secondsPerDay === 0) {
       setDay((prevDay) => prevDay + 1);
     }
-  }, [gameTime]);
+  }, [gameTime, secondsPerDay]);
 
   function formatGameTime(time) {
     const totalSeconds = time;
     const hours = Math.floor(totalSeconds / secondsPerHour) % 24;
-    const minutes = Math.floor((totalSeconds % secondsPerHour) / 60);
     const seconds = totalSeconds % 60;
     return `${hours.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }
 
+  const handleBackToLobby = () => {
+    navigate('/lobby');
+  };
+
   return (
     <div className="container-fluid p-0">
-      <div id="stars" ref={starsContainerRef}>
+      {/* <div id="stars" ref={starsContainerRef}>
         {Array.from({ length: 50 }, (_, i) => <Star key={i} />)}
-      </div>
+      </div> */}
 
       <Cloud src={cloud1} alt="Cloud 1" />
       <Cloud src={cloud2} alt="Cloud 2" />
@@ -61,7 +72,8 @@ function MainPage() {
             <div className="col-8">
               <div className="row stat-bar">
                 <div className="col-sm m-2 stat-box">
-                  <span id="greeting"></span> <span id="player-name-display"></span>
+                  <span>Hello {playerName}</span>
+                  <span id="greeting" style={{ display: 'none' }}></span> <span id="player-name-display" style={{ display: 'none' }}></span>
                 </div>
                 <div className="col-sm m-2 stat-box" id="game-time">
                   Day {day}

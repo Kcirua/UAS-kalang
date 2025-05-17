@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../style.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Cloud from '../components/Cloud';
 import cloud1 from '../assets/cloud 1.png';
 import cloud2 from '../assets/cloud 2.png';
@@ -15,6 +15,37 @@ import Star from '../components/Star';
 
 function LobbyPage() {
   const starsContainerRef = useRef(null);
+  const [playerName, setPlayerName] = useState('');
+  const [currentAvatarIndex, setCurrentAvatarIndex] = useState(0);
+  const avatars = [grayAvatar, greenAvatar, redAvatar];
+  const [selectedAvatar, setSelectedAvatar] = useState(avatars[currentAvatarIndex]);
+  const navigate = useNavigate();
+
+  const handleInputChange = (e) => {
+    setPlayerName(e.target.value);
+  };
+
+  const handleStartClick = () => {
+    if (playerName.trim() !== '') {
+      localStorage.setItem('playerName', playerName);
+      localStorage.setItem('playerAvatar', selectedAvatar);
+      navigate('/main');
+    } else {
+      alert('Please enter your name!');
+    }
+  };
+
+  const handlePrevAvatar = () => {
+    setCurrentAvatarIndex((prevIndex) => (prevIndex - 1 + avatars.length) % avatars.length);
+  };
+
+  const handleNextAvatar = () => {
+    setCurrentAvatarIndex((prevIndex) => (prevIndex + 1) % avatars.length);
+  };
+
+  useEffect(() => {
+    setSelectedAvatar(avatars[currentAvatarIndex]);
+  }, [currentAvatarIndex, avatars]);
 
   useEffect(() => {
     const starsContainer = starsContainerRef.current;
@@ -47,17 +78,17 @@ function LobbyPage() {
             </h1>
 
             <div className="d-flex justify-content-center align-items-center mb-3">
-              <button id="prev-avatar" className="btn nav-btn rounded-circle me-3">
+              <button id="prev-avatar" className="btn nav-btn rounded-circle me-3" onClick={handlePrevAvatar}>
                 &#9665;
               </button>
               <img
                 id="avatar"
-                src={grayAvatar}
+                src={selectedAvatar}
                 alt="Avatar"
                 className="img-fluid rounded-circle"
                 style={{ width: '120px', height: '120px', objectFit: 'cover', border: '5px solid #a06a3f' }}
               />
-              <button id="next-avatar" className="btn nav-btn rounded-circle ms-3">
+              <button id="next-avatar" className="btn nav-btn rounded-circle ms-3" onClick={handleNextAvatar}>
                 &#9655;
               </button>
             </div>
@@ -68,11 +99,12 @@ function LobbyPage() {
                 id="player-name"
                 className="form-control mb-3 text-center"
                 placeholder="Enter your name here..."
-                style={{ border: '3px solid #a06a3f', backgroundColor: '#f5d090', color: '#874e1f' }}
+                value={playerName}
+                onChange={handleInputChange}
               />
-              <Link to="/main" className="start-button button-link" style={{ width: '100%', marginBottom: '10px' }}>
+              <button onClick={handleStartClick} className="start-button" style={{ width: '100%', marginBottom: '10px' }}>
                 Start Exploring
-              </Link>
+              </button>
               <Link to="/" className="start-button button-link" style={{ width: '100%', fontSize: '1.5rem' }}>
                 Back
               </Link>
