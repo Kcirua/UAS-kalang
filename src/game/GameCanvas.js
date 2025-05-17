@@ -17,7 +17,7 @@ const CHAR_HEIGHT = 64;
 function GameCanvas({ mapImageSrc, characterImageSrc }) {
   const canvasRef = useRef(null);
   // Posisi karakter dalam koordinat DUNIA (seluruh peta)
-  const [characterWorldPosition, setCharacterWorldPosition] = useState({ x: 1335, y: 1800 }); // Posisi awal di dunia
+  const [characterWorldPosition, setCharacterWorldPosition] = useState({ x: 1335, y: 1760 }); // Posisi awal di dunia
   // Posisi kamera (sudut kiri atas viewport) dalam koordinat DUNIA
   const [cameraPosition, setCameraPosition] = useState({ x: 0, y: 0 });
   // State untuk menyimpan dimensi asli peta
