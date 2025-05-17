@@ -391,6 +391,10 @@ h1 {
   padding: 15px;
 }
 
+.ruangmainnya {
+  width: max-content;
+}
+
 
 /* .game-box {
   background: white;
@@ -454,12 +458,4 @@ h1 {
   text-align: center;
   margin-bottom: 10px;
 }
-
-/* .ruangmainnya {
-  min-height: 400px;
-  margin: 10px; */
-  /* background-image: url("asset/room-background.png"); */
-  /* background-size: cover;
-  background-position: center;
-} */
-
+  */
