@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; // Pastikan install react-router-dom
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import IndexPage from './pages/IndexPage';
 import LobbyPage from './pages/LobbyPage';
 import MainPage from './pages/MainPage';
