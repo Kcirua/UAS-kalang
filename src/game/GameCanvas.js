@@ -8,11 +8,13 @@ import {
   CHARACTER_VIEWPORT_OFFSET_X,
   CHARACTER_VIEWPORT_OFFSET_Y,
   DEFAULT_SPRITE_CONFIG,
-  CHARACTER_STEP_SIZE // Impor kecepatan gerak
+  CHARACTER_STEP_SIZE,
+  // Impor konstanta minimap jika perlu di sini, atau biarkan di MinimapCanvas.js
 } from './gameConstants';
 import useGameAssets from './useGameAssets';
 import useCamera from './useCamera';
 import useCharacter from './useCharacter';
+import MinimapCanvas from '../pages/MinimapCanvas'; // <--- Impor MinimapCanvas
 
 function GameCanvas({ mapImageSrc, characterImageSrc }) {
   const canvasRef = useRef(null);
@@ -22,16 +24,16 @@ function GameCanvas({ mapImageSrc, characterImageSrc }) {
     characterImage,
     mapDimensions,
     isCharacterImageLoaded,
-    assetsReady
+    assetsReady // Pastikan assetsReady diekspor dari useGameAssets
   } = useGameAssets(mapImageSrc, characterImageSrc);
 
   const {
-    characterWorldPosition, // Posisi saat ini
-    updateWorldPosition,    // Fungsi untuk update posisi dari useCharacter
+    characterWorldPosition,
+    updateWorldPosition,
     currentFrame,
-    activeKeysRef           // Ref ke tombol yang aktif dari useCharacter
+    activeKeysRef
   } = useCharacter({
-    initialPosition: { x: 1335, y: 1760 }, // Posisi awal dari kode sebelumnya [cite: 51]
+    initialPosition: { x: 1335, y: 1760 },
     spriteConfig: DEFAULT_SPRITE_CONFIG,
   });
 
@@ -57,30 +59,26 @@ function GameCanvas({ mapImageSrc, characterImageSrc }) {
     let animationFrameId;
 
     const drawGame = () => {
-      // --- Logika Pembaruan Posisi Karakter ---
-      const activeKeys = activeKeysRef.current; // Dapatkan tombol yang sedang aktif
+      const activeKeys = activeKeysRef.current;
       if (activeKeys && activeKeys.size > 0 && mapDimensions.width > 0 && mapDimensions.height > 0) {
-        let { x, y } = characterWorldPosition; // Ambil posisi saat ini
+        let { x, y } = characterWorldPosition;
 
         if (activeKeys.has('ArrowUp') || activeKeys.has('w')) y -= CHARACTER_STEP_SIZE;
         if (activeKeys.has('ArrowDown') || activeKeys.has('s')) y += CHARACTER_STEP_SIZE;
         if (activeKeys.has('ArrowLeft') || activeKeys.has('a')) x -= CHARACTER_STEP_SIZE;
         if (activeKeys.has('ArrowRight') || activeKeys.has('d')) x += CHARACTER_STEP_SIZE;
 
-        // Batasan pergerakan karakter agar tidak keluar peta [cite: 72, 73]
         x = Math.max(0, Math.min(x, mapDimensions.width - CHAR_DISPLAY_WIDTH));
         y = Math.max(0, Math.min(y, mapDimensions.height - CHAR_DISPLAY_HEIGHT));
 
-        // Hanya panggil updateWorldPosition jika posisi benar-benar berubah
         if (x !== characterWorldPosition.x || y !== characterWorldPosition.y) {
-          updateWorldPosition({ x, y }); // Perbarui state posisi di useCharacter
+          updateWorldPosition({ x, y });
         }
       }
-      // --- Akhir Logika Pembaruan Posisi Karakter ---
 
       context.clearRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
 
-      if (mapImage && mapDimensions.width > 0) {
+      if (mapImage && mapDimensions.width > 0 && cameraPosition) { // Tambahkan cek cameraPosition
         context.drawImage(
           mapImage,
           cameraPosition.x, cameraPosition.y,
@@ -90,24 +88,27 @@ function GameCanvas({ mapImageSrc, characterImageSrc }) {
         );
       }
 
-      const characterViewportX = characterWorldPosition.x - cameraPosition.x;
-      const characterViewportY = characterWorldPosition.y - cameraPosition.y;
+      // Pastikan cameraPosition ada sebelum menghitung posisi karakter di viewport
+      if (cameraPosition) {
+          const characterViewportX = characterWorldPosition.x - cameraPosition.x;
+          const characterViewportY = characterWorldPosition.y - cameraPosition.y;
 
-      if (characterImage && isCharacterImageLoaded && characterImage.naturalWidth > 0) {
-        const sourceX = currentFrame * DEFAULT_SPRITE_CONFIG.frameWidth;
-        const sourceY = 0;
+          if (characterImage && isCharacterImageLoaded && characterImage.naturalWidth > 0) {
+            const sourceX = currentFrame * DEFAULT_SPRITE_CONFIG.frameWidth;
+            const sourceY = 0;
 
-        context.drawImage(
-          characterImage,
-          sourceX,
-          sourceY,
-          DEFAULT_SPRITE_CONFIG.frameWidth,
-          DEFAULT_SPRITE_CONFIG.frameHeight,
-          characterViewportX,
-          characterViewportY,
-          CHAR_DISPLAY_WIDTH,
-          CHAR_DISPLAY_HEIGHT
-        );
+            context.drawImage(
+              characterImage,
+              sourceX,
+              sourceY,
+              DEFAULT_SPRITE_CONFIG.frameWidth,
+              DEFAULT_SPRITE_CONFIG.frameHeight,
+              characterViewportX,
+              characterViewportY,
+              CHAR_DISPLAY_WIDTH,
+              CHAR_DISPLAY_HEIGHT
+            );
+          }
       }
       animationFrameId = requestAnimationFrame(drawGame);
     };
@@ -128,14 +129,28 @@ function GameCanvas({ mapImageSrc, characterImageSrc }) {
   }, [
     mapImage, characterImage, mapDimensions, cameraPosition,
     characterWorldPosition, currentFrame, isCharacterImageLoaded, assetsReady,
-    activeKeysRef, updateWorldPosition // Tambahkan sebagai dependensi
+    activeKeysRef, updateWorldPosition
   ]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={{ border: '1px solid black', width: `${VIEWPORT_WIDTH}px`, height: `${VIEWPORT_HEIGHT}px` }}
-    />
+    // Tambahkan div wrapper untuk positioning relatif jika MinimapCanvas adalah child langsung
+    <div style={{ position: 'relative', width: `${VIEWPORT_WIDTH}px`, height: `${VIEWPORT_HEIGHT}px` }}>
+      <canvas
+        ref={canvasRef}
+        style={{ border: '1px solid black', display: 'block' }} // display: 'block' untuk menghilangkan spasi bawah canvas
+        // width dan height diatur via JavaScript
+      />
+      {/* Render MinimapCanvas di sini */}
+      <MinimapCanvas
+        mapImage={mapImage}
+        mapDimensions={mapDimensions}
+        characterWorldPosition={characterWorldPosition}
+        cameraPosition={cameraPosition}
+        mainViewportWidth={VIEWPORT_WIDTH}
+        mainViewportHeight={VIEWPORT_HEIGHT}
+        assetsReady={assetsReady}
+      />
+    </div>
   );
 }
 

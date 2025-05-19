@@ -24,3 +24,10 @@ export const DEFAULT_SPRITE_CONFIG = {
   frameHeight: 64,     // Tinggi satu frame di spritesheet
   animationSpeedMs: 150 // Kecepatan animasi dalam milidetik per frame
 };
+
+
+export const MINIMAP_WIDTH = 150; // Lebar minimap dalam piksel
+export const MINIMAP_HEIGHT = 100; // Tinggi minimap dalam piksel (bisa disesuaikan agar aspek rasio map terjaga)
+export const MINIMAP_CHARACTER_DOT_SIZE = 5;
+export const MINIMAP_VIEWPORT_BORDER_COLOR = 'rgba(255, 255, 255, 0.7)';
+export const MINIMAP_CHARACTER_DOT_COLOR = 'red';
