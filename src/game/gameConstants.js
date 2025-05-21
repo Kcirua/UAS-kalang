@@ -15,7 +15,7 @@ export const CHAR_DISPLAY_WIDTH = 64;
 export const CHAR_DISPLAY_HEIGHT = 64;
 
 // Kecepatan gerak karakter (piksel per pembaruan)
-export const CHARACTER_STEP_SIZE = 2; // Kecepatan dari kode asli Anda [cite: 70, 71]
+export const CHARACTER_STEP_SIZE = 1; // Kecepatan dari kode asli Anda [cite: 70, 71]
 
 // Konfigurasi default untuk sprite karakter (blue_mushroom_walk.png)
 export const DEFAULT_SPRITE_CONFIG = {
