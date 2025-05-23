@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+// src/pages/IndexPage.js
+import React, { useRef } from 'react';
 import '../style.css';
 import Cloud from '../components/Cloud';
 import { Link } from 'react-router-dom';
@@ -11,36 +12,40 @@ import cloud6 from '../assets/cloud 6.png';
 import Star from '../components/Star';
 import TitleBox from '../components/TitleBox';
 
-function IndexPage() {
+const cloudImages = [cloud1, cloud2, cloud3, cloud4, cloud5, cloud6];
 
+function IndexPage() {
   const starsContainerRef = useRef(null);
 
-  useEffect(() => {
-    const starsContainer = starsContainerRef.current;
-    if (!starsContainer) return;
-  }, []);
+  const clouds = Array.from({ length: 10 }, (_, i) => {
+    const img = cloudImages[Math.floor(Math.random() * cloudImages.length)];
+    return <Cloud key={i} src={img} alt={`Cloud ${i + 1}`} />;
+  });
 
   return (
-    <div className="container-fluid p-0">
+    <div className="container-fluid p-0 page-fade">
       <div id="stars" ref={starsContainerRef}>
         {Array.from({ length: 50 }, (_, i) => <Star key={i} />)}
       </div>
 
-      <Cloud src={cloud1} alt="Cloud 1" />
-      <Cloud src={cloud2} alt="Cloud 2" />
-      <Cloud src={cloud6} alt="Cloud 3" />
-      <Cloud src={cloud4} alt="Cloud 4" />
-      <Cloud src={cloud5} alt="Cloud 5" />
-      <Cloud src={cloud3} alt="Cloud 6" />
+      {clouds}
+
+      {/* Floating leaves */}
+      <div className="floating-leaf" style={{ left: '10%' }} />
+      <div className="floating-leaf" style={{ left: '80%' }} />
 
       <div className="row g-0">
         <div className="col-12">
           <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
             <TitleBox>
-              <h1>KATAK<br />PETUALANG</h1>
+              <h1 className="animated-title">KATAK<br />PETUALANG</h1>
             </TitleBox>
 
-            <Link to="/lobby" className="start-button">START</Link>
+            <Link to="/lobby" className="start-button">
+              START
+            </Link>
+
+            {/* Tooltip below button */}
           </div>
         </div>
       </div>

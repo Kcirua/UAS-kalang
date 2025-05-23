@@ -1,3 +1,4 @@
+// src/pages/LobbyPage.js
 import React, { useState, useEffect, useRef } from 'react';
 import '../style.css';
 import { Link, useNavigate } from 'react-router-dom';
@@ -18,21 +19,16 @@ function LobbyPage() {
   const [playerName, setPlayerName] = useState('');
   const [currentAvatarIndex, setCurrentAvatarIndex] = useState(0);
   const avatars = [grayAvatar, greenAvatar, redAvatar];
-  const [selectedAvatar, setSelectedAvatar] = useState(avatars[currentAvatarIndex]);
+  const avatarNames = ['Gray Frog', 'Green Frog', 'Red Frog'];
+  const [selectedAvatar, setSelectedAvatar] = useState(avatars[0]);
   const navigate = useNavigate();
 
-  const handleInputChange = (e) => {
-    setPlayerName(e.target.value);
-  };
+  const handleInputChange = (e) => setPlayerName(e.target.value);
 
   const handleStartClick = () => {
-    if (playerName.trim() !== '') {
-      localStorage.setItem('playerName', playerName);
-      localStorage.setItem('playerAvatar', selectedAvatar);
-      navigate('/main');
-    } else {
-      alert('Please enter your name!');
-    }
+    localStorage.setItem('playerName', playerName);
+    localStorage.setItem('playerAvatar', selectedAvatar);
+    navigate('/');
   };
 
   const handlePrevAvatar = () => {
@@ -45,40 +41,38 @@ function LobbyPage() {
 
   useEffect(() => {
     setSelectedAvatar(avatars[currentAvatarIndex]);
-  }, [currentAvatarIndex, avatars]);
-
-  useEffect(() => {
-    const starsContainer = starsContainerRef.current;
-    if (!starsContainer) return;
-  }, []);
+  }, [currentAvatarIndex]);
 
   return (
-    <div className="container-fluid p-0">
+    <div className="container-fluid p-0 page-fade">
       <div id="stars" ref={starsContainerRef}>
         {Array.from({ length: 50 }, (_, i) => <Star key={i} />)}
       </div>
 
-      <Cloud src={cloud1} alt="Cloud 1" />
-      <Cloud src={cloud2} alt="Cloud 2" />
-      <Cloud src={cloud6} alt="Cloud 3" />
-      <Cloud src={cloud4} alt="Cloud 4" />
-      <Cloud src={cloud5} alt="Cloud 5" />
-      <Cloud src={cloud3} alt="Cloud 6" />
+      {/* Clouds */}
+      {[cloud1, cloud2, cloud3, cloud4, cloud5, cloud6].map((cloud, i) => (
+        <Cloud key={i} src={cloud} alt={`Cloud ${i + 1}`} />
+      ))}
+
+      {/* Floating Leaves */}
+      <div className="floating-leaf" style={{ left: '20%' }} />
+      <div className="floating-leaf" style={{ left: '70%' }} />
+
 
       <div className="row justify-content-center">
         <div className="col-12 col-md-6 col-lg-4">
           <div className="title-box-lobby" style={{ padding: '20px', maxWidth: '100%' }}>
-            <div className="corner top-left"></div>
-            <div className="corner top-right"></div>
-            <div className="corner bottom-left"></div>
-            <div className="corner bottom-right"></div>
+            <div className="corner top-left" />
+            <div className="corner top-right" />
+            <div className="corner bottom-left" />
+            <div className="corner bottom-right" />
 
             <h1 className="h4 fw-bold" style={{ fontSize: '2rem', marginBottom: '15px' }}>
               Katak Petualang
             </h1>
 
-            <div className="d-flex justify-content-center align-items-center mb-3">
-              <button id="prev-avatar" className="btn nav-btn rounded-circle me-3" onClick={handlePrevAvatar}>
+            <div className="d-flex justify-content-center align-items-center mb-3 avatar-carousel">
+              <button className="btn nav-btn rounded-circle me-3" onClick={handlePrevAvatar}>
                 &#9665;
               </button>
               <img
@@ -86,27 +80,46 @@ function LobbyPage() {
                 src={selectedAvatar}
                 alt="Avatar"
                 className="img-fluid rounded-circle"
-                style={{ width: '120px', height: '120px', objectFit: 'cover', border: '5px solid #a06a3f' }}
+                style={{
+                  width: '120px',
+                  height: '120px',
+                  objectFit: 'cover',
+                  border: '5px solid #a06a3f',
+                  transition: 'transform 0.3s, opacity 0.3s'
+                }}
               />
-              <button id="next-avatar" className="btn nav-btn rounded-circle ms-3" onClick={handleNextAvatar}>
+              <button className="btn nav-btn rounded-circle ms-3" onClick={handleNextAvatar}>
                 &#9655;
               </button>
             </div>
 
+            <p className="text-center mt-2" style={{ color: '#874e1f', fontWeight: 'bold' }}>
+              {avatarNames[currentAvatarIndex]}
+            </p>
+
             <div className="mt-4">
               <input
                 type="text"
-                id="player-name"
                 className="form-control mb-3 text-center"
                 placeholder="Enter your name here..."
                 value={playerName}
                 onChange={handleInputChange}
               />
-              <button onClick={handleStartClick} className="start-button" style={{ width: '100%', marginBottom: '10px' }}>
+              <button
+                onClick={handleStartClick}
+                className="start-button"
+                disabled={!playerName.trim()}
+                style={{
+                  width: '100%',
+                  marginBottom: '10px',
+                  opacity: playerName.trim() ? 1 : 0.6,
+                  cursor: playerName.trim() ? 'pointer' : 'not-allowed'
+                }}
+              >
                 Start Exploring
               </button>
               <Link to="/" className="start-button button-link" style={{ width: '100%', fontSize: '1.5rem' }}>
-                Back
+                Back to Home
               </Link>
             </div>
           </div>
