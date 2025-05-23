@@ -125,36 +125,82 @@ h1 {
 
 /* Title Box Styles */
 .title-box, .title-box-lobby {
-  background: #f5d090;
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
-  text-align: center;
-  border: 12px solid #a06a3f;
   position: relative;
   width: 100%;
+  max-width: 500px;
   margin: 20px auto;
   z-index: 10;
-  overflow: hidden;
   animation: slideUpFade 0.8s ease-out forwards;
   opacity: 0;
+  text-align: center;
+  padding: 20px;
+  background: rgba(245, 208, 144, 0.9);
+  border: 6px solid #a06a3f;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.title-box::before, .title-box-lobby::before {
-  content: "";
+/* Title Text */
+.title-box h1, .title-box-lobby h1 {
+  color: #4a3000;
+  text-shadow: 
+    2px 2px 0 rgba(255, 255, 255, 0.3),
+    -1px -1px 0 rgba(0, 0, 0, 0.2);
+  font-size: 2.5rem;
+  margin: 0;
+  padding: 10px;
+  position: relative;
+  letter-spacing: 2px;
+}
+
+/* Wood Grain Effect */
+.wood-grain {
   position: absolute;
-  top: 0;
+  inset: 0;
+  opacity: 0.05;
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      #000,
+      #000 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      #000,
+      #000 1px,
+      transparent 1px,
+      transparent 4px
+    );
+  pointer-events: none;
+}
+
+/* Side Nails/Screws */
+.title-box-lobby::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 10px;
+  bottom: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+}
+
+.title-box-lobby::before {
+  content: '';
+  position: absolute;
   left: 0;
   right: 0;
+  top: 0;
   bottom: 0;
-  background: repeating-linear-gradient(
-    90deg,
-    rgba(160, 106, 63, 0.1),
-    rgba(160, 106, 63, 0.1) 2px,
-    transparent 2px,
-    transparent 20px
-  );
-  z-index: -1;
+  background: 
+    radial-gradient(circle at 15px 15px, #8b4513 0, #8b4513 2px, transparent 2px),
+    radial-gradient(circle at calc(100% - 15px) 15px, #8b4513 0, #8b4513 2px, transparent 2px),
+    radial-gradient(circle at 15px calc(100% - 15px), #8b4513 0, #8b4513 2px, transparent 2px),
+    radial-gradient(circle at calc(100% - 15px) calc(100% - 15px), #8b4513 0, #8b4513 2px, transparent 2px);
+  z-index: 1;
 }
 
 /* Button Styles */
@@ -272,9 +318,12 @@ h1 {
     padding: 15px;
   }
   
-  .title-box-lobby {
-    padding: 20px;
-    margin: 10px auto;
+  .title-box {
+    padding: 30px 15px;
+  }
+  
+  .animated-title {
+    font-size: 2.5rem;
   }
   
   .avatar-display {
@@ -397,7 +446,17 @@ h1 {
 }
 
 .animated-title {
+  position: relative;
+  z-index: 2;
+  color: #4a3000;
+  text-shadow: 
+    2px 2px 0 rgba(255, 255, 255, 0.3),
+    -1px -1px 0 rgba(0, 0, 0, 0.2);
   animation: titleFadeBounce 1s 0.2s ease-out both;
+  font-size: 3rem;
+  line-height: 1.2;
+  margin: 0;
+  padding: 10px;
 }
 
 @keyframes titleFadeBounce {

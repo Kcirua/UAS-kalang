@@ -10,7 +10,6 @@ import cloud4 from '../assets/cloud 4.png';
 import cloud5 from '../assets/cloud 5.png';
 import cloud6 from '../assets/cloud 6.png';
 import Star from '../components/Star';
-import TitleBox from '../components/TitleBox';
 
 const cloudImages = [cloud1, cloud2, cloud3, cloud4, cloud5, cloud6];
 
@@ -37,15 +36,13 @@ function IndexPage() {
       <div className="row g-0">
         <div className="col-12">
           <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
-            <TitleBox>
+            <div className="title-box">
               <h1 className="animated-title">KATAK<br />PETUALANG</h1>
-            </TitleBox>
+            </div>
 
             <Link to="/lobby" className="start-button">
               START
             </Link>
-
-            {/* Tooltip below button */}
           </div>
         </div>
       </div>

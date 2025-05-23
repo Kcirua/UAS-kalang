@@ -38,8 +38,9 @@ function LobbyPage() {
     <div className="container-fluid page-fade">
       <div className="lobby-content">
         <div className="title-box-lobby">
-          <h1 className="fw-bold mb-4">
-            Katak Petualang
+          <div className="wood-grain"></div>
+          <h1 className="fw-bold">
+            Character Selection
           </h1>
 
           <div className="avatar-carousel">
