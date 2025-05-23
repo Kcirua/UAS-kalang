@@ -5,12 +5,17 @@ function getRandom(min, max) {
 }
 
 function Cloud({ src, alt }) {
-  // Randomize top position (5% to 45%), duration (16s to 28s), and delay (0s to 10s)
+  // Adjust positioning to avoid center area
+  const isTop = Math.random() > 0.5;
+  const topPosition = isTop ? getRandom(0, 15) : getRandom(75, 90);
+  
   const style = {
-    top: `${getRandom(5, 45)}%`,
+    top: `${topPosition}%`,
     left: '-35vw',
-    animationDuration: `${getRandom(16, 28)}s`,
+    animationDuration: `${getRandom(20, 35)}s`,
     animationDelay: `${getRandom(0, 10)}s`,
+    opacity: isTop ? 0.6 : 0.7, // Top clouds more transparent
+    transform: `scale(${isTop ? 0.9 : 1})`, // Top clouds slightly smaller
   };
 
   return <img src={src} alt={alt} className="cloud" style={style} />;
