@@ -9,7 +9,6 @@ import PlayerStats from '../mainPage/Playerstats';
 import StatusBarGrid from '../mainPage/StatusBarGrid';
 import ActionPanel from '../mainPage/ActionPanel';
 import MovementControls from '../mainPage/MovementControls';
-import { RenderClouds } from '../utils/uiUtils'; // Impor RenderClouds
 import playerCharacterSprite from '../game/assets/blue_mushroom_walk.png';
 
 // Konstanta untuk game, bisa juga diletakkan di file konfigurasi
@@ -107,7 +106,6 @@ function MainPage() {
 
   return (
     <div className="container-fluid p-0">
-      <RenderClouds /> {/* Menggunakan komponen RenderClouds */}
       <div className="semua">
         <div className="text-center">
           <div className="row game-panel">
