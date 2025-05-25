@@ -1,162 +1,204 @@
 // src/pages/MainPage.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Tambahkan useCallback
 import { useNavigate } from 'react-router-dom';
-import '../style.css'; // Style global
+import '../style.css'; //
 import GameCanvas from '../game/GameCanvas';
-import mapBackground from '../assets/map/mainmap.png'; // Sesuaikan path aset
-// Import komponen yang sudah dipisah
-import PlayerStats from '../mainPage/Playerstats';
-import StatusBarGrid from '../mainPage/StatusBarGrid';
-import ActionPanel from '../mainPage/ActionPanel';
-import MovementControls from '../mainPage/MovementControls';
-import { RenderClouds } from '../utils/uiUtils'; // Impor RenderClouds
-import playerCharacterSprite from '../game/assets/blue_mushroom_walk.png';
+import mapBackground from '../assets/map/mainmap.png'; //
+import homeMapBackground from '../assets/map/home.png'; // <-- Aset peta rumah BARU
+import PlayerStats from '../mainPage/Playerstats'; //
+import StatusBarGrid from '../mainPage/StatusBarGrid'; //
+import ActionPanel from '../mainPage/ActionPanel'; //
+import MovementControls from '../mainPage/MovementControls'; //
+import playerCharacterSprite from '../game/assets/blue_mushroom_sheet_upscaled.png'; //
 
-// Konstanta untuk game, bisa juga diletakkan di file konfigurasi
-const GAME_SPEED = 5;
-const SECONDS_PER_HOUR = 60;
-const HOURS_PER_DAY = 24;
-const SECONDS_PER_DAY = SECONDS_PER_HOUR * HOURS_PER_DAY;
+// Konstanta game... (tidak berubah)
+const GAME_SPEED = 5; //
+const SECONDS_PER_HOUR = 60; //
+const HOURS_PER_DAY = 24; //
+const SECONDS_PER_DAY = SECONDS_PER_HOUR * HOURS_PER_DAY; //
+const STAT_DECREASE_INTERVAL_SECONDS = 90; //
+const MAKAN_DECREMENT = 2; //
+const TIDUR_DECREMENT = 1;
+const KESENANGAN_DECREMENT = 3; //
+const KEBERSIHAN_DECREMENT = 1; //
+
+// Objek untuk detail peta
+const mapDetails = {
+  world: {
+    imageSrc: mapBackground,
+    initialPlayerPos: { x: 1335, y: 1760 }, // Posisi awal di peta dunia
+    entryPointFromHouse: { x: 1335, y: 1800 }, // Posisi saat keluar dari rumah (misalnya, di depan pintu)
+  },
+  house: {
+    imageSrc: homeMapBackground,
+    initialPlayerPos: { x: 230, y: 370 }, // Posisi awal di dalam rumah (misal, dekat pintu masuk dari dalam)
+    // Tile pintu keluar di peta rumah akan menjadi tile tipe 2 juga
+  }
+};
 
 function MainPage() {
-  const [gameTime, setGameTime] = useState(0);
-  const [day, setDay] = useState(1);
-  const [playerName, setPlayerName] = useState('Player');
-  const [playerAvatar, setPlayerAvatar] = useState('');
-  const navigate = useNavigate();
-
-  // State untuk status karakter
+  const [gameTime, setGameTime] = useState(0); //
+  const [day, setDay] = useState(1); //
+  const [playerName, setPlayerName] = useState('Player'); //
+  const [playerAvatar, setPlayerAvatar] = useState(''); //
+  const navigate = useNavigate(); //
   const [stats, setStats] = useState({
     makan: 100,
     tidur: 100,
     kesenangan: 100,
     kebersihan: 100,
-    money: 0,
+    money: 50, //
   });
+  const [showTidurButton, setShowTidurButton] = useState(true); //
+  const [showBersihButton, setShowBersihButton] = useState(true); //
 
-  // State untuk mengontrol tampilan tombol (contoh)
-  const [showTidurButton, setShowTidurButton] = useState(true); // Sesuaikan dengan logika game
-  const [showBersihButton, setShowBersihButton] = useState(true); // Sesuaikan dengan logika game
+  // State untuk peta saat ini dan posisi spawn karakter
+  const [currentMapKey, setCurrentMapKey] = useState('world');
+  const [characterSpawnPosition, setCharacterSpawnPosition] = useState(mapDetails.world.initialPlayerPos);
 
-
-  // Efek untuk mengambil data pemain dari localStorage dan inisialisasi game loop
+  // Efek untuk mengambil data pemain... (tidak berubah signifikan, kecuali initial spawn)
   useEffect(() => {
     const storedName = localStorage.getItem('playerName');
     const storedAvatar = localStorage.getItem('playerAvatar');
-
     if (storedName) setPlayerName(storedName);
     if (storedAvatar) setPlayerAvatar(storedAvatar);
     else console.warn("Player avatar not found in localStorage.");
 
+    // Set posisi spawn awal berdasarkan peta awal (world)
+    setCharacterSpawnPosition(mapDetails.world.initialPlayerPos);
+
     const intervalId = setInterval(() => {
       setGameTime((prevTime) => prevTime + 1);
-    }, 1000 / GAME_SPEED);
+    }, 1000 / GAME_SPEED); //
+    return () => clearInterval(intervalId); //
+  }, []); //
 
-    return () => clearInterval(intervalId);
-  }, []); // Dependency array kosong agar hanya berjalan sekali saat mount
-
-  // Efek untuk update hari berdasarkan gameTime
+  // useEffect untuk update hari dan pengurangan status... (tidak berubah)
   useEffect(() => {
-    if (gameTime > 0 && gameTime % SECONDS_PER_DAY === 0) {
-      setDay((prevDay) => prevDay + 1);
-      // Di sini Anda bisa menambahkan logika pengurangan status harian, dll.
+    if (gameTime > 0) {
+      if (gameTime % SECONDS_PER_DAY === 0) {
+        setDay((prevDay) => prevDay + 1);
+      }
+      if (gameTime % STAT_DECREASE_INTERVAL_SECONDS === 0) {
+        setStats(prevStats => ({
+          ...prevStats,
+          makan: Math.max(0, prevStats.makan - MAKAN_DECREMENT),
+          tidur: Math.max(0, prevStats.tidur - TIDUR_DECREMENT),
+          kesenangan: Math.max(0, prevStats.kesenangan - KESENANGAN_DECREMENT),
+          kebersihan: Math.max(0, prevStats.kebersihan - KEBERSIHAN_DECREMENT), //
+          money: prevStats.money
+        }));
+      }
     }
-  }, [gameTime]);
+  }, [gameTime]); //
 
-  // --- Event Handlers untuk Aksi ---
-  // Implementasi handler ini akan mengubah state `stats`
-  const handleMakan = () => {
-    console.log("Makan clicked");
-    setStats(prevStats => ({ ...prevStats, makan: Math.min(prevStats.makan + 20, 100), money: prevStats.money - 5 }));
-    // Tambahkan logika lain jika ada (misalnya, cek uang cukup, dll)
+  // useEffect untuk game over... (tidak berubah)
+  useEffect(() => {
+    if (playerName && (stats.makan <= 0 && stats.tidur <= 0 && stats.kesenangan <= 0 && stats.kebersihan <= 0)) {
+      navigate('/gameover');
+    }
+  }, [stats, playerName, navigate]);
+
+  // Event Handlers untuk Aksi (handleMakan, handleBermain, dst.)... (tidak berubah)
+  const handleMakan = () => { //
+    if (stats.money >= 5) {
+        setStats(prevStats => ({ 
+            ...prevStats, 
+            makan: Math.min(prevStats.makan + 20, 100), 
+            money: prevStats.money - 5 
+        })); //
+    } else {
+        console.log("Uang tidak cukup untuk makan!"); //
+    }
   };
-
-  const handleBermain = () => {
-    console.log("Bermain clicked");
-    setStats(prevStats => ({ ...prevStats, kesenangan: Math.min(prevStats.kesenangan + 30, 100), makan: Math.max(prevStats.makan - 10, 0) }));
+  const handleBermain = () => { //
+    setStats(prevStats => ({ 
+        ...prevStats, 
+        kesenangan: Math.min(prevStats.kesenangan + 30, 100), 
+        makan: Math.max(prevStats.makan - 10, 0)
+    })); //
   };
-
-  const handleTidur = () => {
-    console.log("Tidur clicked");
-    setStats(prevStats => ({ ...prevStats, tidur: Math.min(prevStats.tidur + 50, 100) }));
-    // Mungkin ada logika untuk skip waktu atau semacamnya
+  const handleTidur = () => { //
+    setStats(prevStats => ({ ...prevStats, tidur: Math.min(prevStats.tidur + 50, 100) })); //
   };
-
-  const handleBersih = () => {
-    console.log("Bersih-bersih clicked");
-    setStats(prevStats => ({ ...prevStats, kebersihan: Math.min(prevStats.kebersihan + 40, 100) }));
+  const handleBersih = () => { //
+    setStats(prevStats => ({ ...prevStats, kebersihan: Math.min(prevStats.kebersihan + 40, 100) })); //
   };
-
-  // Event handlers untuk tombol movement (jika ingin dihubungkan dari UI selain keyboard)
-  // Saat ini GameCanvas.js menangani input keyboard.
-  // Jika tombol ini ingin mengontrol karakter, perlu ada cara untuk GameCanvas "mendengarkan" event dari sini.
-  const handleMoveUp = () => console.log("Move Up UI clicked");
-  const handleMoveDown = () => console.log("Move Down UI clicked");
-  const handleMoveLeft = () => console.log("Move Left UI clicked");
-  const handleMoveRight = () => console.log("Move Right UI clicked");
+  const handleMoveUp = () => console.log("UI Gerak Atas diklik"); //
+  const handleMoveDown = () => console.log("UI Gerak Bawah diklik"); //
+  const handleMoveLeft = () => console.log("UI Gerak Kiri diklik"); //
+  const handleMoveRight = () => console.log("UI Gerak Kanan diklik"); //
+  const handleBackToLobby = () => navigate('/lobby'); //
 
 
-  const handleBackToLobby = () => {
-    navigate('/lobby');
-  };
+  // Fungsi untuk menangani permintaan transisi peta dari GameCanvas
+  const handleMapTransitionRequest = useCallback((targetMapKey) => {
+    if (mapDetails[targetMapKey]) {
+      if (targetMapKey === 'world' && currentMapKey === 'house') {
+        // Saat keluar dari rumah, gunakan entryPointFromHouse
+        setCharacterSpawnPosition(mapDetails.world.entryPointFromHouse);
+      } else {
+        setCharacterSpawnPosition(mapDetails[targetMapKey].initialPlayerPos);
+      }
+      setCurrentMapKey(targetMapKey);
+    } else {
+      console.error("Requested map key does not exist:", targetMapKey);
+    }
+  }, [currentMapKey]); // Tambahkan currentMapKey sebagai dependensi
 
-  // Tampilan loading jika avatar atau map belum siap
-  if (!playerAvatar || !mapBackground) {
-    return <div>Loading character and map assets...</div>;
+  if (!playerAvatar || !mapDetails[currentMapKey]?.imageSrc) { //
+    return <div>Memuat aset karakter dan peta...</div>;
   }
 
   return (
     <div className="container-fluid p-0">
-      <RenderClouds /> {/* Menggunakan komponen RenderClouds */}
       <div className="semua">
         <div className="text-center">
           <div className="row game-panel">
-            {/* Kolom Kiri: Info Player & Game Canvas */}
             <div className="col-9">
               <PlayerStats
-                playerName={playerName}
-                day={day}
-                gameTime={gameTime}
-                money={stats.money}
+                playerName={playerName} //
+                day={day} //
+                gameTime={gameTime} //
+                money={stats.money} //
               />
-              <StatusBarGrid stats={stats} />
+              <StatusBarGrid stats={stats} /> {/* */}
               <div className="ruangmainnya bg-white p-4 rounded shadow">
                 <GameCanvas
-                  mapImageSrc={mapBackground}
-                  // characterImageSrc={playerAvatar}
-                  characterImageSrc={playerCharacterSprite}
-                  // Anda bisa passing fungsi untuk update stats dari GameCanvas jika diperlukan
-                  // Contoh: onAreaReached={(area) => console.log("Reached:", area)}
+                  mapImageSrc={mapDetails[currentMapKey].imageSrc} // Dinamis berdasarkan currentMapKey
+                  characterImageSrc={playerCharacterSprite} //
+                  currentMapKey={currentMapKey}
+                  initialCharacterPosition={characterSpawnPosition}
+                  onMapTransitionRequest={handleMapTransitionRequest} // Callback untuk transisi
+                  // Kita akan butuh mapDetails di GameCanvas untuk logika interaksi pintu keluar rumah nanti
+                  worldEntryFromHousePosition={mapDetails.world.entryPointFromHouse}
                 />
               </div>
             </div>
-
-            {/* Kolom Kanan: Aksi & Kontrol */}
-            <div className="col-3 align-items-start flex-column p-4 action-panel img-fluid">
-              {/* Indikator lokasi bisa menjadi state jika dinamis */}
-              <div className="p-2 mb-2 location-indicator" style={{ display: 'none' }}>At home</div>
+            <div className="col-3 align-items-start flex-column p-4 action-panel img-fluid"> {/* */}
+              <div className="p-2 mb-2 location-indicator" style={{ display: 'none' }}>At home</div> {/* */}
               <ActionPanel
-                onMakan={handleMakan}
-                onBermain={handleBermain}
-                onTidur={handleTidur}
-                onBersih={handleBersih}
-                showTidurButton={showTidurButton} // Tergantung logika game
-                showBersihButton={showBersihButton} // Tergantung logika game
+                onMakan={handleMakan} //
+                onBermain={handleBermain} //
+                onTidur={handleTidur} //
+                onBersih={handleBersih} //
+                showTidurButton={showTidurButton} //
+                showBersihButton={showBersihButton} //
               />
-              <div className="separator my-4 bg-white" style={{ height: '2px', opacity: '0.5' }}></div>
+              <div className="separator my-4 bg-white" style={{ height: '2px', opacity: '0.5' }}></div> {/* */}
               <MovementControls
-                onUp={handleMoveUp}
-                onDown={handleMoveDown}
-                onLeft={handleMoveLeft}
-                onRight={handleMoveRight}
-              />
-              <button onClick={handleBackToLobby} className="btn btn-info w-100 mt-4">Back to Lobby</button>
+                onUp={handleMoveUp} //
+                onDown={handleMoveDown} //
+                onLeft={handleMoveLeft} //
+                onRight={handleMoveRight} //
+              /> {/* */}
+              <button onClick={handleBackToLobby} className="btn btn-info w-100 mt-4">Kembali ke Lobby</button> {/* */}
             </div>
           </div>
         </div>
       </div>
     </div>
-  );
+  ); //
 }
 
 export default MainPage;

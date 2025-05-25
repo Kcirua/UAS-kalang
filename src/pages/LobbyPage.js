@@ -55,7 +55,7 @@ function LobbyPage() {
     localStorage.setItem('playerAvatar', selectedAvatar);
     
     setTimeout(() => {
-      navigate('/');
+      navigate('/main');
     }, 500);
   };
 
