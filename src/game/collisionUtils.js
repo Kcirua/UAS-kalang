@@ -2,50 +2,47 @@
 import { getCollisionTileValue } from './collisionData'; // [cite: 39]
 
 /**
- * Memeriksa jenis tile pertama yang signifikan (pintu, rawa, atau solid)
+ * Memeriksa jenis tile pertama yang signifikan (pintu, rawa, gua, atau solid)
  * yang tumpang tindih dengan bounding box karakter pada peta yang aktif.
- * SEKARANG: Memberi prioritas pada solid (1) untuk pemblokiran gerakan,
- * kemudian pintu (2) atau rawa (3) jika tidak ada solid.
+ * Prioritas: solid (1), lalu pintu (2), lalu rawa (3), lalu gua (4).
  *
- * @param {number} worldX - Posisi X kiri atas karakter.
- * @param {number} worldY - Posisi Y kiri atas karakter.
- * @param {number} charWidth - Lebar bounding box kolisi karakter.
- * @param {number} charHeight - Tinggi bounding box kolisi karakter.
- * @param {object} currentCollisionMapConfig - Konfigurasi peta kolisi aktif (dari collisionMapsData).
- * @returns {number} Jenis tile (1 untuk solid, 2 untuk pintu, 3 untuk rawa, 0 untuk bisa dilewati).
+ * @param {number} worldX - Posisi X kiri atas karakter. [cite: 41]
+ * @param {number} worldY - Posisi Y kiri atas karakter. [cite: 42]
+ * @param {number} charWidth - Lebar bounding box kolisi karakter. [cite: 43]
+ * @param {number} charHeight - Tinggi bounding box kolisi karakter. [cite: 43]
+ * @param {object} currentCollisionMapConfig - Konfigurasi peta kolisi aktif. [cite: 44]
+ * @returns {number} Jenis tile (1 solid, 2 pintu, 3 rawa, 4 gua, 0 bisa dilewati). [cite: 45]
  */
 export function getOverlappingTileType(worldX, worldY, charWidth, charHeight, currentCollisionMapConfig) {
-  if (!currentCollisionMapConfig) return 0; // [cite: 47]
+  if (!currentCollisionMapConfig) return 0; // [cite: 46]
 
-  const { tileWidth, tileHeight } = currentCollisionMapConfig; // [cite: 48]
+  const { tileWidth, tileHeight } = currentCollisionMapConfig; // [cite: 47]
   const startCol = Math.floor(worldX / tileWidth); // [cite: 48]
   const endCol = Math.floor((worldX + charWidth - 1) / tileWidth); // [cite: 48]
   const startRow = Math.floor(worldY / tileHeight); // [cite: 49]
   const endRow = Math.floor((worldY + charHeight - 1) / tileHeight); // [cite: 49]
 
-  let isOverlappingSolid = false; // [cite: 50]
+  let isOverlappingSolid = false; // [cite: 49]
   let isOverlappingDoor = false; // [cite: 50]
-  let isOverlappingSwamp = false; // Variabel baru untuk tile rawa
+  let isOverlappingSwamp = false;
+  let isOverlappingCave = false; // Variabel baru untuk tile gua
 
   for (let r = startRow; r <= endRow; r++) {
     for (let c = startCol; c <= endCol; c++) {
-      const tileType = getCollisionTileValue(c, r, currentCollisionMapConfig); // [cite: 51]
+      const tileType = getCollisionTileValue(c, r, currentCollisionMapConfig); // [cite: 50]
       if (tileType === 1) {
-        isOverlappingSolid = true; // [cite: 52]
+        isOverlappingSolid = true; // [cite: 51]
       } else if (tileType === 2) {
-        isOverlappingDoor = true; // [cite: 53]
-      } else if (tileType === 3) { // Cek untuk tile rawa
+        isOverlappingDoor = true; // [cite: 52]
+      } else if (tileType === 3) {
         isOverlappingSwamp = true;
+      } else if (tileType === 4) { // Cek untuk tile gua
+        isOverlappingCave = true;
       }
     }
   }
 
-  // Logika Prioritas BARU:
-  // 1. Jika ada tile solid (1) yang tumpang tindih, area dianggap solid.
-  // 2. Jika tidak ada tile solid, tetapi ada tile pintu (2), area dianggap pintu.
-  // 3. Jika tidak ada solid atau pintu, tetapi ada tile rawa (3), area dianggap rawa.
-  // 4. Jika tidak ketiganya, area bisa dilewati (0).
-
+  // Logika Prioritas:
   if (isOverlappingSolid) {
     return 1; // [cite: 56]
   }
@@ -53,20 +50,22 @@ export function getOverlappingTileType(worldX, worldY, charWidth, charHeight, cu
     return 2; // [cite: 57]
   }
   if (isOverlappingSwamp) {
-    return 3; // Tile rawa terdeteksi
+    return 3;
+  }
+  if (isOverlappingCave) {
+    return 4; // Tile gua terdeteksi
   }
   return 0; // [cite: 58]
 }
 
 /**
- * Memeriksa apakah bounding box karakter tumpang tindih dengan tile solid (tipe 1) pada peta aktif.
- * Fungsi ini sekarang menggunakan getOverlappingTileType yang telah dimodifikasi.
- * @param {number} worldX - Posisi X kiri atas karakter.
- * @param {number} worldY - Posisi Y kiri atas karakter.
- * @param {number} charWidth - Lebar bounding box kolisi karakter.
- * @param {number} charHeight - Tinggi bounding box kolisi karakter.
- * @param {object} currentCollisionMapConfig - Konfigurasi peta kolisi aktif.
- * @returns {boolean} True jika terjadi kolisi dengan tile solid, false jika tidak.
+ * Memeriksa apakah bounding box karakter tumpang tindih dengan tile solid (tipe 1).
+ * @param {number} worldX - Posisi X kiri atas karakter. [cite: 61]
+ * @param {number} worldY - Posisi Y kiri atas karakter. [cite: 61]
+ * @param {number} charWidth - Lebar bounding box kolisi karakter. [cite: 62]
+ * @param {number} charHeight - Tinggi bounding box kolisi karakter. [cite: 62]
+ * @param {object} currentCollisionMapConfig - Konfigurasi peta kolisi aktif. [cite: 63]
+ * @returns {boolean} True jika kolisi dengan solid, false jika tidak. [cite: 63]
  */
 export function isOverlappingSolidTile(worldX, worldY, charWidth, charHeight, currentCollisionMapConfig) {
   return getOverlappingTileType(worldX, worldY, charWidth, charHeight, currentCollisionMapConfig) === 1; // [cite: 65]

@@ -18,8 +18,9 @@ function GameCanvas({
   currentMapKey,
   initialCharacterPosition,
   onMapTransitionRequest,
-  // Tambahkan prop baru untuk posisi spawn dari rawa (opsional, tergantung desain)
-  // worldEntryFromSwampPosition, // Mirip worldEntryFromHousePosition
+  // worldEntryFromHousePosition, // Sudah ada di MainPage
+  // worldEntryFromSwampPosition, // Sudah ada di MainPage jika Anda menambahkannya
+  // worldEntryFromCavePosition, // Prop baru jika diperlukan posisi spawn spesifik dari gua, dikelola di MainPage
 }) {
   const canvasRef = useRef(null); // [cite: 70]
   const {
@@ -33,8 +34,8 @@ function GameCanvas({
     initialPosition: initialCharacterPosition,
     spriteConfig: DEFAULT_SPRITE_CONFIG,
   });
-  const [canInteractWithTransitionTile, setCanInteractWithTransitionTile] = useState(false); // Nama lebih generik
-  const [interactionTileType, setInteractionTileType] = useState(0); // Untuk tahu jenis tile interaktif
+  const [canInteractWithTransitionTile, setCanInteractWithTransitionTile] = useState(false);
+  const [interactionTileType, setInteractionTileType] = useState(0);
 
   const { cameraPosition } = useCamera({ // [cite: 73]
     characterWorldPosition, mapDimensions, viewportWidth: VIEWPORT_WIDTH, viewportHeight: VIEWPORT_HEIGHT,
@@ -45,25 +46,29 @@ function GameCanvas({
   const activeCollisionMapConfig = collisionMapsData[currentMapKey]; // [cite: 74]
 
   const handleInteraction = useCallback(() => {
-    // Logika interaksi sekarang berdasarkan interactionTileType
-    if (interactionTileType === 2) { // Pintu rumah
+    if (interactionTileType === 2) { // Pintu (umum untuk keluar)
       if (currentMapKey === 'world') {
         console.log("INTERAKSI DENGAN PINTU RUMAH! MASUK RUMAH...");
         onMapTransitionRequest('house');
-      } else if (currentMapKey === 'house') {
-        console.log("INTERAKSI DENGAN PINTU KELUAR RUMAH! KEMBALI KE DUNIA...");
+      } else if (currentMapKey === 'house' || currentMapKey === 'swamp' || currentMapKey === 'caves') {
+        // Logika keluar dari rumah, rawa, atau gua kembali ke dunia
+        console.log(`INTERAKSI DENGAN PINTU KELUAR DARI ${currentMapKey.toUpperCase()}! KEMBALI KE DUNIA...`);
         onMapTransitionRequest('world');
       }
-    } else if (interactionTileType === 3) { // Pintu masuk rawa
+    } else if (interactionTileType === 3) { // Pintu masuk rawa (dari dunia)
       if (currentMapKey === 'world') {
         console.log("INTERAKSI DENGAN RAWA! MASUK RAWA...");
-        onMapTransitionRequest('swamp'); // Minta MainPage untuk ganti ke peta 'swamp'
-      } else if (currentMapKey === 'swamp') {
-        // Ini akan menjadi pintu keluar dari rawa, yang di collisionData.js swampCollisions ditandai sbg '2'
-        // Jika Anda ingin tile '3' juga bisa jadi pintu keluar dari rawa, tambahkan logika di sini
-        console.log("INTERAKSI DENGAN PINTU KELUAR RAWA! KEMBALI KE DUNIA...");
-        onMapTransitionRequest('world'); // Asumsi kembali ke world
+        onMapTransitionRequest('swamp');
       }
+      // Jika ada tile tipe 3 di dalam rawa dengan fungsi lain, tambahkan di sini.
+      // Saat ini, keluar dari rawa menggunakan tile tipe 2.
+    } else if (interactionTileType === 4) { // Pintu masuk gua (dari dunia)
+      if (currentMapKey === 'world') {
+        console.log("INTERAKSI DENGAN GUA! MASUK GUA...");
+        onMapTransitionRequest('caves');
+      }
+      // Jika ada tile tipe 4 di dalam gua dengan fungsi lain, tambahkan di sini.
+      // Saat ini, keluar dari gua menggunakan tile tipe 2.
     }
   }, [currentMapKey, onMapTransitionRequest, interactionTileType]); // [cite: 75]
 
@@ -78,8 +83,8 @@ function GameCanvas({
       CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT,
       activeCollisionMapConfig
     );
-    // Bisa interaksi jika tile adalah pintu (2) atau rawa (3)
-    if (currentTileType === 2 || currentTileType === 3) {
+    // Bisa interaksi jika tile adalah pintu (2), rawa (3), atau gua (4)
+    if (currentTileType === 2 || currentTileType === 3 || currentTileType === 4) {
       setCanInteractWithTransitionTile(true);
       setInteractionTileType(currentTileType);
     } else {
@@ -129,15 +134,15 @@ function GameCanvas({
       if (activeCollisionMapConfig) {
         if (attemptedMoveX !== currentX) {
           const tileTypeX = getOverlappingTileType(attemptedMoveX, currentY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig); // [cite: 86]
-          // Bisa lewat, pintu, atau rawa
-          if (tileTypeX === 0 || tileTypeX === 2 || tileTypeX === 3) { // [cite: 87]
+          // Bisa lewat, pintu, rawa, atau gua
+          if (tileTypeX === 0 || tileTypeX === 2 || tileTypeX === 3 || tileTypeX === 4) { // Memperbolehkan tile tipe 4
             finalTargetX = attemptedMoveX;
           }
         }
         if (attemptedMoveY !== currentY) {
           const tileTypeY = getOverlappingTileType(finalTargetX, attemptedMoveY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig); // [cite: 88]
-          // Bisa lewat, pintu, atau rawa
-          if (tileTypeY === 0 || tileTypeY === 2 || tileTypeY === 3) { // [cite: 89]
+          // Bisa lewat, pintu, rawa, atau gua
+          if (tileTypeY === 0 || tileTypeY === 2 || tileTypeY === 3 || tileTypeY === 4) { // Memperbolehkan tile tipe 4
             finalTargetY = attemptedMoveY;
           }
         }
@@ -178,8 +183,10 @@ function GameCanvas({
                 context.fillStyle = 'rgba(255, 0, 0, 0.3)'; // [cite: 102]
               } else if (collisionDataArray[r][c] === 2) { 
                 context.fillStyle = 'rgba(0, 0, 255, 0.3)'; // [cite: 103]
-              } else if (collisionDataArray[r][c] === 3) { // Warna untuk tile rawa
+              } else if (collisionDataArray[r][c] === 3) {
                 context.fillStyle = 'rgba(0, 255, 0, 0.3)'; // Hijau untuk rawa
+              } else if (collisionDataArray[r][c] === 4) { // Warna untuk tile gua
+                context.fillStyle = 'rgba(128, 0, 128, 0.3)'; // Ungu untuk gua
               }
               context.fillRect(tileViewportX, tileViewportY, tileW, tileH); // [cite: 104]
             }
@@ -187,6 +194,7 @@ function GameCanvas({
         }
       }
 
+      // Gambar Karakter (logika tidak berubah)
       if (cameraPosition && characterImage && isCharacterImageLoaded) { // [cite: 110]
         const characterViewportX = characterWorldPosition.x - cameraPosition.x; // [cite: 105]
         const characterViewportY = characterWorldPosition.y - cameraPosition.y; // [cite: 105]
@@ -206,6 +214,7 @@ function GameCanvas({
         );
       }
       
+      // Tampilkan prompt interaksi
       if (canInteractWithTransitionTile) { // [cite: 111]
         context.fillStyle = "white"; // [cite: 111]
         context.strokeStyle = "black"; // [cite: 112]
@@ -214,10 +223,17 @@ function GameCanvas({
         context.textAlign = "center"; // [cite: 113]
         
         let promptText = "";
-        if (interactionTileType === 2) { // Pintu
-            promptText = (currentMapKey === 'world') ? "Tekan 'E' untuk Masuk Rumah" : "Tekan 'E' untuk Keluar Rumah";
-        } else if (interactionTileType === 3) { // Rawa
-            promptText = (currentMapKey === 'world') ? "Tekan 'E' untuk Masuk Rawa" : "Tekan 'E' untuk Keluar Rawa";
+        if (interactionTileType === 2) { // Pintu keluar umum
+            if (currentMapKey === 'world') promptText = "Tekan 'E' untuk Masuk Rumah"; // Ke rumah dari dunia
+            else if (currentMapKey === 'house') promptText = "Tekan 'E' untuk Keluar Rumah";
+            else if (currentMapKey === 'swamp') promptText = "Tekan 'E' untuk Keluar Rawa";
+            else if (currentMapKey === 'caves') promptText = "Tekan 'E' untuk Keluar Gua";
+        } else if (interactionTileType === 3) { // Pintu masuk Rawa dari dunia
+            if (currentMapKey === 'world') promptText = "Tekan 'E' untuk Masuk Rawa";
+            // Tidak ada prompt "Keluar Rawa" di sini karena keluar Rawa menggunakan tileType 2
+        } else if (interactionTileType === 4) { // Pintu masuk Gua dari dunia
+            if (currentMapKey === 'world') promptText = "Tekan 'E' untuk Masuk Gua";
+            // Tidak ada prompt "Keluar Gua" di sini karena keluar Gua menggunakan tileType 2
         }
 
         const textX = characterWorldPosition.x - cameraPosition.x + (CHAR_DISPLAY_WIDTH / 2); // [cite: 115]
@@ -246,10 +262,10 @@ function GameCanvas({
     assetsReady, characterWorldPosition, mapDimensions, cameraPosition,
     updateWorldPosition, activeKeysRef, characterImage, isCharacterImageLoaded, mapImage,
     currentFrame, facingDirection, interactionKeyRef, 
-    canInteractWithTransitionTile, handleInteraction, // Modifikasi di sini
+    canInteractWithTransitionTile, handleInteraction,
     activeCollisionMapConfig,
     currentMapKey,
-    interactionTileType // Tambahkan ini
+    interactionTileType
   ]); // [cite: 125]
 
   return (

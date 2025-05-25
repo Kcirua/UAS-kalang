@@ -1,16 +1,17 @@
 // src/pages/MainPage.js
-import React, { useState, useEffect, useCallback } from 'react'; // [cite: 240]
-import { useNavigate } from 'react-router-dom'; // [cite: 240]
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../style.css';
 import GameCanvas from '../game/GameCanvas';
-import mapBackground from '../assets/map/mainmap.png'; // [cite: 241]
-import homeMapBackground from '../assets/map/home.png'; // [cite: 241]
-import swampMapBackground from '../assets/map/rawa.png'; // <-- Aset peta rawa BARU (buat file ini)
-import PlayerStats from '../mainPage/Playerstats'; // [cite: 242]
-import StatusBarGrid from '../mainPage/StatusBarGrid'; // [cite: 242]
-import ActionPanel from '../mainPage/ActionPanel'; // [cite: 242]
-import MovementControls from '../mainPage/MovementControls'; // [cite: 242]
-import playerCharacterSprite from '../game/assets/blue_mushroom_sheet_upscaled.png'; // [cite: 242]
+import mapBackground from '../assets/map/mainmap.png';
+import homeMapBackground from '../assets/map/home.png';
+import swampMapBackground from '../assets/map/rawa.png'; // Pastikan nama file ini benar (rawa.png atau swamp.png)
+import cavesMapBackground from '../assets/map/caves.png'; // <-- Aset peta gua BARU (buat file ini)
+import PlayerStats from '../mainPage/Playerstats';
+import StatusBarGrid from '../mainPage/StatusBarGrid';
+import ActionPanel from '../mainPage/ActionPanel';
+import MovementControls from '../mainPage/MovementControls';
+import playerCharacterSprite from '../game/assets/blue_mushroom_sheet_upscaled.png';
 
 const GAME_SPEED = 5; // [cite: 243]
 const SECONDS_PER_HOUR = 60; // [cite: 243]
@@ -27,17 +28,21 @@ const mapDetails = {
     imageSrc: mapBackground,
     initialPlayerPos: { x: 1335, y: 1760 }, // [cite: 246]
     entryPointFromHouse: { x: 1335, y: 1800 }, // [cite: 246]
-    entryPointFromSwamp: { x: 140, y: 1850 }, // Posisi saat keluar dari rawa (misalnya, di depan pintu masuk rawa di dunia)
+    entryPointFromSwamp: { x: 140, y: 1850 },
+    entryPointFromCave: { x: 3450, y: 540 }, // Posisi saat keluar dari gua (sesuaikan)
   },
   house: {
     imageSrc: homeMapBackground,
     initialPlayerPos: { x: 230, y: 370 }, // [cite: 246]
   },
-  // TAMBAHKAN DETAIL PETA RAWA
   swamp: {
-    imageSrc: swampMapBackground, // Ganti dengan path ke gambar peta rawa Anda
-    initialPlayerPos: { x: 955, y: 550 }, // Posisi awal di dalam rawa
-    // entryPointToWorld: { x: ..., y: ...} // Jika perlu posisi keluar spesifik dari rawa
+    imageSrc: swampMapBackground,
+    initialPlayerPos: { x: 955, y: 550 },
+  },
+  // TAMBAHKAN DETAIL PETA GUA
+  caves: {
+    imageSrc: cavesMapBackground, // Path ke gambar peta gua Anda
+    initialPlayerPos: { x: 500, y: 300 }, // Posisi awal di dalam gua (sesuaikan)
   }
 };
 
@@ -136,14 +141,20 @@ function MainPage() {
         if (currentMapKey === 'house') {
           setCharacterSpawnPosition(mapDetails.world.entryPointFromHouse); // [cite: 266]
         } else if (currentMapKey === 'swamp') {
-          // Saat keluar dari rawa, gunakan entryPointFromSwamp jika ada, atau default world
           setCharacterSpawnPosition(mapDetails.world.entryPointFromSwamp || mapDetails.world.initialPlayerPos);
+        } else if (currentMapKey === 'caves') {
+          // Saat keluar dari gua, gunakan entryPointFromCave
+          setCharacterSpawnPosition(mapDetails.world.entryPointFromCave || mapDetails.world.initialPlayerPos);
         } else {
            setCharacterSpawnPosition(mapDetails.world.initialPlayerPos);
         }
       } else if (targetMapKey === 'swamp' && currentMapKey === 'world') {
         setCharacterSpawnPosition(mapDetails.swamp.initialPlayerPos);
+      } else if (targetMapKey === 'caves' && currentMapKey === 'world') {
+        // Transisi dari dunia ke gua
+        setCharacterSpawnPosition(mapDetails.caves.initialPlayerPos);
       } else {
+        // Untuk transisi lainnya seperti world -> house
         setCharacterSpawnPosition(mapDetails[targetMapKey].initialPlayerPos); // [cite: 266]
       }
       setCurrentMapKey(targetMapKey); // [cite: 266]
@@ -176,8 +187,11 @@ function MainPage() {
                   currentMapKey={currentMapKey} // [cite: 271]
                   initialCharacterPosition={characterSpawnPosition} // [cite: 271]
                   onMapTransitionRequest={handleMapTransitionRequest} // [cite: 271]
-                  worldEntryFromHousePosition={mapDetails.world.entryPointFromHouse} // [cite: 271]
-                  // worldEntryFromSwampPosition={mapDetails.world.entryPointFromSwamp} // Opsional
+                  // Props berikut ini sebenarnya tidak perlu lagi diteruskan ke GameCanvas
+                  // karena logika spawn sudah ditangani di handleMapTransitionRequest di MainPage ini.
+                  // worldEntryFromHousePosition={mapDetails.world.entryPointFromHouse} 
+                  // worldEntryFromSwampPosition={mapDetails.world.entryPointFromSwamp} 
+                  // worldEntryFromCavePosition={mapDetails.world.entryPointFromCave} // Prop ini juga tidak perlu
                 />
               </div>
             </div>
