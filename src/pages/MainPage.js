@@ -9,7 +9,7 @@ import PlayerStats from '../mainPage/Playerstats';
 import StatusBarGrid from '../mainPage/StatusBarGrid';
 import ActionPanel from '../mainPage/ActionPanel';
 import MovementControls from '../mainPage/MovementControls';
-import playerCharacterSprite from '../game/assets/blue_mushroom_walk.png';
+import playerCharacterSprite from '../game/assets/blue_mushroom_sheet_upscaled.png';
 
 // Konstanta untuk game, bisa juga diletakkan di file konfigurasi
 const GAME_SPEED = 5;
