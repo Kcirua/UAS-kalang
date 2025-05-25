@@ -1,61 +1,70 @@
 // src/game/useCharacter.js
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react'; // [cite: 120]
 
 function useCharacter({
-  initialPosition,
+  initialPosition, // Ini akan menjadi dinamis
   spriteConfig,
 }) {
   const [worldPosition, setWorldPosition] = useState(initialPosition);
-  const [isMoving, setIsMoving] = useState(false);
-  const [currentFrame, setCurrentFrame] = useState(0);
+  const [isMoving, setIsMoving] = useState(false); // [cite: 121]
+  const [currentFrame, setCurrentFrame] = useState(0); // [cite: 121]
   const [facingDirection, setFacingDirection] = useState('right');
   const activeKeysRef = useRef(new Set());
-  const interactionKeyRef = useRef(false); // Ref untuk status tombol interaksi
+  const interactionKeyRef = useRef(false); // [cite: 122]
 
   const updateWorldPosition = useCallback((newPosition) => {
     setWorldPosition(newPosition);
-  }, []);
+  }, []); // [cite: 123]
 
+  // EFEK BARU: Reset posisi dunia karakter jika initialPosition prop berubah
+  useEffect(() => {
+    setWorldPosition(initialPosition);
+  }, [initialPosition]);
+
+  // useEffect untuk handleKeyDown dan handleKeyUp (tidak berubah signifikan)
   useEffect(() => {
     const handleKeyDown = (event) => {
-      const moveKeys = ['ArrowUp', 'w', 'ArrowDown', 's', 'ArrowLeft', 'a', 'ArrowRight', 'd'];
-      const interactionKeys = ['e', 'enter']; // Tombol interaksi (gunakan huruf kecil)
+      const moveKeys = ['arrowup', 'w', 'arrowdown', 's', 'arrowleft', 'a', 'arrowright', 'd']; // sudah lowercase
+      const interactionKeys = ['e', 'enter'];
 
-      if (moveKeys.includes(event.key.toLowerCase())) {
+      const keyLower = event.key.toLowerCase();
+
+      if (moveKeys.includes(keyLower)) { // [cite: 124]
         event.preventDefault();
-        activeKeysRef.current.add(event.key.toLowerCase());
+        activeKeysRef.current.add(keyLower);
         if (!isMoving) setIsMoving(true);
-        if (event.key.toLowerCase() === 'arrowleft' || event.key.toLowerCase() === 'a') {
-          setFacingDirection('left');
-        } else if (event.key.toLowerCase() === 'arrowright' || event.key.toLowerCase() === 'd') {
+        if (keyLower === 'arrowleft' || keyLower === 'a') {
+          setFacingDirection('left'); // [cite: 124]
+        } else if (keyLower === 'arrowright' || keyLower === 'd') {
           setFacingDirection('right');
         }
       }
 
-      if (interactionKeys.includes(event.key.toLowerCase())) {
+      if (interactionKeys.includes(keyLower)) {
         event.preventDefault();
-        interactionKeyRef.current = true; // Set ref saat tombol interaksi ditekan
+        interactionKeyRef.current = true;
       }
     };
 
     const handleKeyUp = (event) => {
-      const moveKeys = ['ArrowUp', 'w', 'ArrowDown', 's', 'ArrowLeft', 'a', 'ArrowRight', 'd'];
-      if (moveKeys.includes(event.key.toLowerCase())) {
+      const moveKeys = ['arrowup', 'w', 'arrowdown', 's', 'arrowleft', 'a', 'arrowright', 'd']; // [cite: 125]
+      const keyLower = event.key.toLowerCase();
+
+      if (moveKeys.includes(keyLower)) { // [cite: 126]
         event.preventDefault();
-        activeKeysRef.current.delete(event.key.toLowerCase());
+        activeKeysRef.current.delete(keyLower); // [cite: 127]
         if (activeKeysRef.current.size === 0) {
-          setIsMoving(false);
+          setIsMoving(false); // [cite: 128]
         } else {
           const keys = activeKeysRef.current;
-          if (!keys.has('arrowleft') && !keys.has('a') && (keys.has('arrowright') || keys.has('d'))) {
-            setFacingDirection('right');
-          } else if (!keys.has('arrowright') && !keys.has('d') && (keys.has('arrowleft') || keys.has('a'))) {
-            setFacingDirection('left');
+          if (!keys.has('arrowleft') && !keys.has('a') && (keys.has('arrowright') || keys.has('d'))) { // [cite: 129]
+            setFacingDirection('right'); // [cite: 130]
+          } else if (!keys.has('arrowright') && !keys.has('d') && (keys.has('arrowleft') || keys.has('a'))) { // [cite: 130]
+            setFacingDirection('left'); // [cite: 131]
           }
         }
       }
-      // interactionKeyRef di-reset di GameCanvas setelah digunakan, bukan di keyUp,
-      // agar penekanan tombol yang singkat tetap tertangkap.
+      // interactionKeyRef di-reset di GameCanvas [cite: 132]
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -63,8 +72,8 @@ function useCharacter({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [isMoving]); // isMoving adalah dependensi yang valid
+    }; // [cite: 133]
+  }, [isMoving]); // [cite: 133]
 
   // Efek untuk animasi frame karakter (tidak berubah)
   useEffect(() => {
@@ -76,7 +85,7 @@ function useCharacter({
       setCurrentFrame(prevFrame => (prevFrame + 1) % spriteConfig.numFrames);
     }, spriteConfig.animationSpeedMs);
     return () => clearInterval(animationInterval);
-  }, [isMoving, spriteConfig.numFrames, spriteConfig.animationSpeedMs]);
+  }, [isMoving, spriteConfig.numFrames, spriteConfig.animationSpeedMs]); // [cite: 134]
 
   return {
     characterWorldPosition: worldPosition,
@@ -85,7 +94,7 @@ function useCharacter({
     currentFrame,
     facingDirection,
     activeKeysRef,
-    interactionKeyRef, // Ekspor ref ini
+    interactionKeyRef, // [cite: 135]
   };
 }
 

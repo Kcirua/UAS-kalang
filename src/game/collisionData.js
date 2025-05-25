@@ -1,7 +1,7 @@
 export const COLLISION_TILE_WIDTH = 64; // e.g., 16 pixels wide
 export const COLLISION_TILE_HEIGHT = 64;
 
-const collisions = [
+const worldCollisions  = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
@@ -27,8 +27,8 @@ const collisions = [
     [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -40,21 +40,44 @@ const collisions = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
+const homeCollisions = [
+  [0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0],
+  [1,1,1,1,1,1,1,1], // Karakter bisa spawn di sekitar sini, misal (x=160, y=320) -> tile (2.5, 5)
+  [1,0,0,0,0,0,1,1],
+  [1,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,1,1], // Pintu keluar di tengah bawah (tileType 2)
+  [1,1,1,2,2,1,1,1],
+];
+export const collisionMapsData = {
+  world: {
+    data: worldCollisions,
+    tileWidth: COLLISION_TILE_WIDTH,
+    tileHeight: COLLISION_TILE_HEIGHT,
+  },
+  house: {
+    data: homeCollisions,
+    tileWidth: COLLISION_TILE_WIDTH, // Asumsi ukuran tile sama
+    tileHeight: COLLISION_TILE_HEIGHT,
+  }
+};
 
 /**
- * Retrieves the collision value for a given tile coordinate.
- * @param {number} c - The column of the tile.
- * @param {number} r - The row of the tile.
- * @returns {number} 1 if solid, 0 if passable, or 0 for out-of-bounds.
+ * Mengambil nilai kolisi untuk koordinat tile tertentu pada peta yang aktif.
+ * @param {number} c - Kolom tile.
+ * @param {number} r - Baris tile.
+ * @param {object} currentCollisionMapConfig - Konfigurasi peta kolisi aktif (misal, collisionMapsData.world).
+ * @returns {number} 1 jika solid, 2 jika pintu, 0 jika bisa dilewati, atau 0 untuk di luar batas.
  */
-export function getCollisionTile(c, r) {
-  if (r >= 0 && r < collisions.length && c >= 0 && c < collisions[r].length) {
-    return collisions[r][c]; // Make sure it's col, not c if you used 'col' in the original
+export function getCollisionTileValue(c, r, currentCollisionMapConfig) {
+  if (!currentCollisionMapConfig || !currentCollisionMapConfig.data) {
+    console.warn("getCollisionTileValue dipanggil tanpa konfigurasi peta yang valid.");
+    return 0; // Anggap bisa dilewati jika tidak ada data peta
   }
-  // Treat out-of-bounds as passable, or return 1 if you want them to be solid.
-  return 0;
+  const { data: collisionDataArray } = currentCollisionMapConfig;
+  if (r >= 0 && r < collisionDataArray.length && c >= 0 && c < collisionDataArray[r].length) {
+    return collisionDataArray[r][c]; // [cite: 34]
+  }
+  return 0; // [cite: 35] Anggap di luar batas bisa dilewati
 }
-
-// Optionally, export the raw data if needed elsewhere,
-// but getCollisionTile is the primary interface for collisionUtils.js
-export { collisions as rawCollisionData };
