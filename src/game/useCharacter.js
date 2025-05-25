@@ -5,87 +5,87 @@ function useCharacter({
   initialPosition,
   spriteConfig,
 }) {
-  const [worldPosition, setWorldPosition] = useState(initialPosition); //
-  const [isMoving, setIsMoving] = useState(false); //
-  const [currentFrame, setCurrentFrame] = useState(0); //
-  const [facingDirection, setFacingDirection] = useState('right'); // State baru: 'left' atau 'right'
-  const activeKeysRef = useRef(new Set()); //
+  const [worldPosition, setWorldPosition] = useState(initialPosition);
+  const [isMoving, setIsMoving] = useState(false);
+  const [currentFrame, setCurrentFrame] = useState(0);
+  const [facingDirection, setFacingDirection] = useState('right');
+  const activeKeysRef = useRef(new Set());
+  const interactionKeyRef = useRef(false); // Ref untuk status tombol interaksi
 
-  const updateWorldPosition = useCallback((newPosition) => { //
+  const updateWorldPosition = useCallback((newPosition) => {
     setWorldPosition(newPosition);
   }, []);
 
-  // Efek untuk menangani input keyboard dan arah hadap
   useEffect(() => {
     const handleKeyDown = (event) => {
-      const moveKeys = ['ArrowUp', 'w', 'ArrowDown', 's', 'ArrowLeft', 'a', 'ArrowRight', 'd']; //
-      if (moveKeys.includes(event.key)) {
+      const moveKeys = ['ArrowUp', 'w', 'ArrowDown', 's', 'ArrowLeft', 'a', 'ArrowRight', 'd'];
+      const interactionKeys = ['e', 'enter']; // Tombol interaksi (gunakan huruf kecil)
+
+      if (moveKeys.includes(event.key.toLowerCase())) {
         event.preventDefault();
-        activeKeysRef.current.add(event.key); //
-        if (!isMoving) {
-          setIsMoving(true); //
-        }
-        // Perbarui arah hadap berdasarkan tombol horizontal yang ditekan
-        if (event.key === 'ArrowLeft' || event.key === 'a') {
+        activeKeysRef.current.add(event.key.toLowerCase());
+        if (!isMoving) setIsMoving(true);
+        if (event.key.toLowerCase() === 'arrowleft' || event.key.toLowerCase() === 'a') {
           setFacingDirection('left');
-        } else if (event.key === 'ArrowRight' || event.key === 'd') {
+        } else if (event.key.toLowerCase() === 'arrowright' || event.key.toLowerCase() === 'd') {
           setFacingDirection('right');
         }
+      }
+
+      if (interactionKeys.includes(event.key.toLowerCase())) {
+        event.preventDefault();
+        interactionKeyRef.current = true; // Set ref saat tombol interaksi ditekan
       }
     };
 
     const handleKeyUp = (event) => {
-      const moveKeys = ['ArrowUp', 'w', 'ArrowDown', 's', 'ArrowLeft', 'a', 'ArrowRight', 'd']; //
-      if (moveKeys.includes(event.key)) {
+      const moveKeys = ['ArrowUp', 'w', 'ArrowDown', 's', 'ArrowLeft', 'a', 'ArrowRight', 'd'];
+      if (moveKeys.includes(event.key.toLowerCase())) {
         event.preventDefault();
-        activeKeysRef.current.delete(event.key); //
-        if (activeKeysRef.current.size === 0) { //
-          setIsMoving(false); //
+        activeKeysRef.current.delete(event.key.toLowerCase());
+        if (activeKeysRef.current.size === 0) {
+          setIsMoving(false);
         } else {
-          // Jika masih ada tombol gerakan yang ditekan, perbarui arah hadap jika perlu.
-          // Ini menangani kasus ketika satu tombol arah dilepas sementara tombol arah lain masih ditahan.
           const keys = activeKeysRef.current;
-          if (!keys.has('ArrowLeft') && !keys.has('a') &&
-              (keys.has('ArrowRight') || keys.has('d'))) {
+          if (!keys.has('arrowleft') && !keys.has('a') && (keys.has('arrowright') || keys.has('d'))) {
             setFacingDirection('right');
-          } else if (!keys.has('ArrowRight') && !keys.has('d') &&
-                     (keys.has('ArrowLeft') || keys.has('a'))) {
+          } else if (!keys.has('arrowright') && !keys.has('d') && (keys.has('arrowleft') || keys.has('a'))) {
             setFacingDirection('left');
           }
         }
       }
+      // interactionKeyRef di-reset di GameCanvas setelah digunakan, bukan di keyUp,
+      // agar penekanan tombol yang singkat tetap tertangkap.
     };
 
-    window.addEventListener('keydown', handleKeyDown); //
-    window.addEventListener('keyup', handleKeyUp); //
-
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown); //
-      window.removeEventListener('keyup', handleKeyUp); //
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isMoving]); // Dependensi isMoving penting di sini
+  }, [isMoving]); // isMoving adalah dependensi yang valid
 
-  // Efek untuk loop animasi frame karakter
+  // Efek untuk animasi frame karakter (tidak berubah)
   useEffect(() => {
     if (!isMoving) {
-      setCurrentFrame(0); // Kembali ke frame idle (frame pertama) saat tidak bergerak
+      setCurrentFrame(0);
       return;
     }
-
     const animationInterval = setInterval(() => {
-      setCurrentFrame(prevFrame => (prevFrame + 1) % spriteConfig.numFrames); //
-    }, spriteConfig.animationSpeedMs); //
-
-    return () => clearInterval(animationInterval); //
-  }, [isMoving, spriteConfig.numFrames, spriteConfig.animationSpeedMs]); //
+      setCurrentFrame(prevFrame => (prevFrame + 1) % spriteConfig.numFrames);
+    }, spriteConfig.animationSpeedMs);
+    return () => clearInterval(animationInterval);
+  }, [isMoving, spriteConfig.numFrames, spriteConfig.animationSpeedMs]);
 
   return {
-    characterWorldPosition: worldPosition, //
-    updateWorldPosition, //
-    isMoving, //
-    currentFrame, //
-    facingDirection, // Ekspor state arah hadap
-    activeKeysRef, //
+    characterWorldPosition: worldPosition,
+    updateWorldPosition,
+    isMoving,
+    currentFrame,
+    facingDirection,
+    activeKeysRef,
+    interactionKeyRef, // Ekspor ref ini
   };
 }
 

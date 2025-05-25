@@ -1,56 +1,62 @@
 // src/game/GameCanvas.js
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react'; // Tambahkan useState & useCallback
+// import { useNavigate } from 'react-router-dom'; // Jika Anda menggunakan routing
 import {
-  VIEWPORT_WIDTH,
-  VIEWPORT_HEIGHT,
-  CHAR_DISPLAY_WIDTH,
-  CHAR_DISPLAY_HEIGHT,
-  CHARACTER_VIEWPORT_OFFSET_X, // Pastikan ini sesuai dengan yang Anda gunakan
-  CHARACTER_VIEWPORT_OFFSET_Y, // Pastikan ini sesuai dengan yang Anda gunakan
-  DEFAULT_SPRITE_CONFIG,
-  CHARACTER_STEP_SIZE,
-  DEBUG_DRAW_COLLISION,
+  VIEWPORT_WIDTH, VIEWPORT_HEIGHT, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT,
+  CHARACTER_VIEWPORT_OFFSET_X, CHARACTER_VIEWPORT_OFFSET_Y,
+  DEFAULT_SPRITE_CONFIG, CHARACTER_STEP_SIZE, DEBUG_DRAW_COLLISION,
 } from './gameConstants';
 import useGameAssets from './useGameAssets';
 import useCamera from './useCamera';
-import useCharacter from './useCharacter'; // Hook karakter yang sudah dimodifikasi
+import useCharacter from './useCharacter';
 import MinimapCanvas from '../pages/MinimapCanvas';
-import { isOverlappingSolidTile } from './collisionUtils';
+import { getOverlappingTileType } from './collisionUtils'; // Anda sudah punya ini
 import { rawCollisionData, COLLISION_TILE_WIDTH, COLLISION_TILE_HEIGHT } from './collisionData';
 
 function GameCanvas({ mapImageSrc, characterImageSrc }) {
   const canvasRef = useRef(null);
+  // const navigate = useNavigate(); // Aktifkan jika menggunakan React Router
+
   const {
-    mapImage,
-    characterImage,
-    mapDimensions,
-    isCharacterImageLoaded,
-    assetsReady
+    mapImage, characterImage, mapDimensions, isCharacterImageLoaded, assetsReady
   } = useGameAssets(mapImageSrc, characterImageSrc);
 
-  // Ambil facingDirection dari useCharacter
   const {
-    characterWorldPosition,
-    updateWorldPosition,
-    currentFrame,
-    activeKeysRef,
-    facingDirection, // <-- Tambahkan ini untuk mendapatkan arah hadap karakter
-    // isMoving, // Anda bisa tambahkan ini jika memerlukan state isMoving di sini
+    characterWorldPosition, updateWorldPosition, currentFrame,
+    activeKeysRef, facingDirection, interactionKeyRef // Ambil interactionKeyRef
   } = useCharacter({
     initialPosition: { x: 1335, y: 1760 },
     spriteConfig: DEFAULT_SPRITE_CONFIG,
   });
 
+  const [canInteractWithDoor, setCanInteractWithDoor] = useState(false); // State baru
+
   const { cameraPosition } = useCamera({
-    characterWorldPosition,
-    mapDimensions,
-    viewportWidth: VIEWPORT_WIDTH,
-    viewportHeight: VIEWPORT_HEIGHT,
-    // Pastikan Anda menggunakan konstanta yang benar untuk offset kamera jika berbeda
+    characterWorldPosition, mapDimensions, viewportWidth: VIEWPORT_WIDTH, viewportHeight: VIEWPORT_HEIGHT,
     characterViewportOffsetX: CHARACTER_VIEWPORT_OFFSET_X || VIEWPORT_WIDTH / 2,
     characterViewportOffsetY: CHARACTER_VIEWPORT_OFFSET_Y || VIEWPORT_HEIGHT / 2,
     assetsReady,
   });
+
+  // Memoize handleEnterHouse jika dijadikan dependensi useEffect lain
+  const handleEnterHouse = useCallback(() => {
+    console.log("INTERAKSI DENGAN PINTU! MASUK RUMAH...");
+    // Contoh: navigate('/rumah');
+    // Tambahkan logika lain yang diperlukan (reset state, dll.)
+  }, [/* navigate */]); // Tambahkan navigate jika digunakan
+
+  // Efek untuk memperbarui canInteractWithDoor berdasarkan posisi karakter
+  useEffect(() => {
+    if (!assetsReady || !mapDimensions.width || !mapDimensions.height) {
+      setCanInteractWithDoor(false); // Tidak bisa berinteraksi jika aset belum siap
+      return;
+    }
+    const currentTileType = getOverlappingTileType(
+      characterWorldPosition.x, characterWorldPosition.y,
+      CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT
+    );
+    setCanInteractWithDoor(currentTileType === 2);
+  }, [characterWorldPosition, assetsReady, mapDimensions]); // mapDimensions diperlukan jika getOverlappingTileType bergantung padanya secara tidak langsung
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -60,125 +66,147 @@ function GameCanvas({ mapImageSrc, characterImageSrc }) {
 
     canvas.width = VIEWPORT_WIDTH;
     canvas.height = VIEWPORT_HEIGHT;
-
     let animationFrameId;
 
     const drawGame = () => {
-      const activeKeys = activeKeysRef.current;
-      if (activeKeys && activeKeys.size > 0 && mapDimensions.width > 0 && mapDimensions.height > 0) {
-        const currentX = characterWorldPosition.x;
-        const currentY = characterWorldPosition.y;
-        let targetX = currentX;
-        let targetY = currentY;
-        let attemptedMoveX = currentX;
-        let attemptedMoveY = currentY;
+      // 1. Proses Interaksi (jika tombol ditekan DAN bisa berinteraksi)
+      if (interactionKeyRef.current && canInteractWithDoor) {
+        handleEnterHouse();
+        interactionKeyRef.current = false; // Reset flag setelah interaksi diproses
+      }
 
-        if (activeKeys.has('ArrowUp') || activeKeys.has('w')) attemptedMoveY -= CHARACTER_STEP_SIZE;
-        if (activeKeys.has('ArrowDown') || activeKeys.has('s')) attemptedMoveY += CHARACTER_STEP_SIZE;
-        if (activeKeys.has('ArrowLeft') || activeKeys.has('a')) attemptedMoveX -= CHARACTER_STEP_SIZE;
-        if (activeKeys.has('ArrowRight') || activeKeys.has('d')) attemptedMoveX += CHARACTER_STEP_SIZE;
+      // 2. Proses Input Gerakan dan Update Posisi
+      const activeKeys = activeKeysRef.current;
+      const currentX = characterWorldPosition.x;
+      const currentY = characterWorldPosition.y;
+      let attemptedMoveX = currentX;
+      let attemptedMoveY = currentY;
+
+      if (activeKeys && activeKeys.size > 0 && mapDimensions.width > 0 && mapDimensions.height > 0) {
+        if (activeKeys.has('arrowup') || activeKeys.has('w')) attemptedMoveY -= CHARACTER_STEP_SIZE;
+        if (activeKeys.has('arrowdown') || activeKeys.has('s')) attemptedMoveY += CHARACTER_STEP_SIZE;
+        if (activeKeys.has('arrowleft') || activeKeys.has('a')) attemptedMoveX -= CHARACTER_STEP_SIZE;
+        if (activeKeys.has('arrowright') || activeKeys.has('d')) attemptedMoveX += CHARACTER_STEP_SIZE;
         
         attemptedMoveX = Math.max(0, Math.min(attemptedMoveX, mapDimensions.width - CHAR_DISPLAY_WIDTH));
         attemptedMoveY = Math.max(0, Math.min(attemptedMoveY, mapDimensions.height - CHAR_DISPLAY_HEIGHT));
-
-        if (attemptedMoveX !== currentX) {
-          if (!isOverlappingSolidTile(attemptedMoveX, currentY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT)) {
-            targetX = attemptedMoveX;
-          }
-        }
-
-        if (attemptedMoveY !== currentY) {
-          if (!isOverlappingSolidTile(targetX, attemptedMoveY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT)) {
-            targetY = attemptedMoveY;
-          }
-        }
-        
-        if (targetX !== currentX || targetY !== currentY) {
-          updateWorldPosition({ x: targetX, y: targetY });
-        }
       }
 
+      let finalTargetX = currentX;
+      let finalTargetY = currentY;
+
+      // Cek pergerakan horizontal
+      if (attemptedMoveX !== currentX) {
+        const tileTypeX = getOverlappingTileType(attemptedMoveX, currentY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT);
+        // Izinkan gerakan jika tile adalah bisa dilewati (0) atau pintu (2)
+        // Interaksi dengan pintu ditangani secara terpisah
+        if (tileTypeX === 0 || tileTypeX === 2) {
+          finalTargetX = attemptedMoveX;
+        }
+        // Jika tileTypeX === 1 (solid), gerakan diblokir (finalTargetX tetap currentX)
+      }
+
+      // Cek pergerakan vertikal (gunakan finalTargetX dari hasil horizontal)
+      if (attemptedMoveY !== currentY) {
+        const tileTypeY = getOverlappingTileType(finalTargetX, attemptedMoveY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT);
+        if (tileTypeY === 0 || tileTypeY === 2) {
+          finalTargetY = attemptedMoveY;
+        }
+        // Jika tileTypeY === 1 (solid), gerakan diblokir
+      }
+      
+      if (finalTargetX !== currentX || finalTargetY !== currentY) {
+        updateWorldPosition({ x: finalTargetX, y: finalTargetY });
+      }
+
+      // 3. Gambar Semua Elemen Game
       context.clearRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
       
+      // Gambar Peta
       if (mapImage && mapDimensions.width > 0 && cameraPosition) {
-        context.drawImage(
-          mapImage,
-          cameraPosition.x, cameraPosition.y,
-          VIEWPORT_WIDTH, VIEWPORT_HEIGHT,
-          0, 0,
-          VIEWPORT_WIDTH, VIEWPORT_HEIGHT
-        );
+        context.drawImage(mapImage, cameraPosition.x, cameraPosition.y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT, 0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
       }
 
-      if (DEBUG_DRAW_COLLISION && rawCollisionData && cameraPosition && COLLISION_TILE_WIDTH > 0 && COLLISION_TILE_HEIGHT > 0) {
-        context.fillStyle = 'rgba(255, 0, 0, 0.3)';
+      // Gambar Debug Kolisi (tidak berubah dari sebelumnya, sudah menampilkan tile pintu)
+      if (DEBUG_DRAW_COLLISION && rawCollisionData && cameraPosition /* ... */) {
+        // ... logika debug kolisi Anda ...
         const startCol = Math.floor(cameraPosition.x / COLLISION_TILE_WIDTH);
-        const endCol = Math.min(
-          startCol + Math.ceil(VIEWPORT_WIDTH / COLLISION_TILE_WIDTH) + 1,
-          rawCollisionData[0] ? rawCollisionData[0].length : 0
-        );
+        const endCol = Math.min(startCol + Math.ceil(VIEWPORT_WIDTH / COLLISION_TILE_WIDTH) + 1, rawCollisionData[0] ? rawCollisionData[0].length : 0);
         const startRow = Math.floor(cameraPosition.y / COLLISION_TILE_HEIGHT);
-        const endRow = Math.min(
-          startRow + Math.ceil(VIEWPORT_HEIGHT / COLLISION_TILE_HEIGHT) + 1,
-          rawCollisionData.length
-        );
+        const endRow = Math.min(startRow + Math.ceil(VIEWPORT_HEIGHT / COLLISION_TILE_HEIGHT) + 1, rawCollisionData.length);
+
         for (let r = Math.max(0, startRow); r < endRow; r++) {
           for (let c = Math.max(0, startCol); c < endCol; c++) {
-            if (rawCollisionData[r] && rawCollisionData[r][c] === 1) {
+            if (rawCollisionData[r] && rawCollisionData[r][c] !== 0) { 
               const tileWorldX = c * COLLISION_TILE_WIDTH;
               const tileWorldY = r * COLLISION_TILE_HEIGHT;
               const tileViewportX = tileWorldX - cameraPosition.x;
               const tileViewportY = tileWorldY - cameraPosition.y;
-              context.fillRect(
-                tileViewportX,
-                tileViewportY,
-                COLLISION_TILE_WIDTH,
-                COLLISION_TILE_HEIGHT
-              );
+
+              if (rawCollisionData[r][c] === 1) { 
+                context.fillStyle = 'rgba(255, 0, 0, 0.3)'; 
+              } else if (rawCollisionData[r][c] === 2) { 
+                context.fillStyle = 'rgba(0, 0, 255, 0.3)'; // Biru untuk pintu
+              }
+              context.fillRect(tileViewportX, tileViewportY, COLLISION_TILE_WIDTH, COLLISION_TILE_HEIGHT);
             }
           }
         }
       }
 
-      // Gambar karakter
-      if (cameraPosition) {
-          const characterViewportX = characterWorldPosition.x - cameraPosition.x;
-          const characterViewportY = characterWorldPosition.y - cameraPosition.y;
+      // Gambar Karakter (tidak berubah)
+      if (cameraPosition && characterImage && isCharacterImageLoaded /* ... */) {
+        const characterViewportX = characterWorldPosition.x - cameraPosition.x;
+        const characterViewportY = characterWorldPosition.y - cameraPosition.y;
+        
+        // Menentukan frame mana yang akan diambil dari sprite sheet secara horizontal
+        const sourceX = currentFrame * DEFAULT_SPRITE_CONFIG.frameWidth;
+        
+        let sourceY = 0; // Default ke baris pertama (misalnya, untuk animasi berjalan ke kanan)
 
-          if (characterImage && isCharacterImageLoaded && characterImage.naturalWidth > 0) {
-            const sourceX = currentFrame * DEFAULT_SPRITE_CONFIG.frameWidth;
-            let sourceY = 0; // Default ke baris pertama (misalnya, jalan ke kanan)
+        // Mengganti baris pada sprite sheet berdasarkan arah hadap karakter
+        if (facingDirection === 'left') {
+          // Jika menghadap kiri, gunakan baris ke-2 (indeks 1) dari sprite sheet
+          sourceY = 4 * DEFAULT_SPRITE_CONFIG.frameHeight; 
+        } else { 
+          // Jika menghadap kanan (atau default), gunakan baris ke-1 (indeks 0)
+          sourceY = 0 * DEFAULT_SPRITE_CONFIG.frameHeight;
+        }
 
-            // Tentukan sourceY berdasarkan facingDirection
-            // Asumsi: baris 0 untuk 'kanan', baris 1 untuk 'kiri'
-            // Sesuaikan jika sprite sheet Anda memiliki urutan yang berbeda
-            if (facingDirection === 'left') {
-              sourceY = 4 * DEFAULT_SPRITE_CONFIG.frameHeight; // Baris kedua untuk jalan ke kiri
-            } else { // 'right' (atau default jika ada kondisi lain)
-              sourceY = 0 * DEFAULT_SPRITE_CONFIG.frameHeight; // Baris pertama untuk jalan ke kanan
-            }
-            
-            // Contoh jika ada animasi idle yang berbeda:
-            // if (!isMoving && facingDirection === 'left') {
-            //   sourceY = INDEKS_BARIS_IDLE_KIRI * DEFAULT_SPRITE_CONFIG.frameHeight;
-            // } else if (!isMoving && facingDirection === 'right') {
-            //   sourceY = INDEKS_BARIS_IDLE_KANAN * DEFAULT_SPRITE_CONFIG.frameHeight;
-            // }
-
-
-            context.drawImage(
-              characterImage,
-              sourceX,
-              sourceY, // <-- Gunakan sourceY yang telah ditentukan
-              DEFAULT_SPRITE_CONFIG.frameWidth,
-              DEFAULT_SPRITE_CONFIG.frameHeight,
-              characterViewportX,
-              characterViewportY,
-              CHAR_DISPLAY_WIDTH,
-              CHAR_DISPLAY_HEIGHT
-            );
-          }
+        // Menggambar frame yang sesuai dari sprite sheet ke canvas
+        context.drawImage(
+          characterImage, 
+          sourceX, // Posisi X frame pada sprite sheet
+          sourceY, // Posisi Y (baris) frame pada sprite sheet
+          DEFAULT_SPRITE_CONFIG.frameWidth,  // Lebar satu frame
+          DEFAULT_SPRITE_CONFIG.frameHeight, // Tinggi satu frame
+          characterViewportX, // Posisi X karakter di canvas
+          characterViewportY, // Posisi Y karakter di canvas
+          CHAR_DISPLAY_WIDTH,   // Lebar karakter saat digambar di canvas
+          CHAR_DISPLAY_HEIGHT   // Tinggi karakter saat digambar di canvas
+        );
       }
+      // Tampilkan prompt interaksi jika bisa berinteraksi dengan pintu
+      if (canInteractWithDoor) {
+        context.fillStyle = "white";
+        context.strokeStyle = "black";
+        context.lineWidth = 2;
+        context.font = "bold 16px Arial";
+        context.textAlign = "center";
+        const promptText = "Tekan 'E' untuk Masuk";
+        const textX = characterWorldPosition.x - cameraPosition.x + (CHAR_DISPLAY_WIDTH / 2);
+        const textY = characterWorldPosition.y - cameraPosition.y - 10; // Sedikit di atas karakter
+        
+        // Latar belakang untuk teks agar mudah dibaca (opsional)
+        // const textWidth = context.measureText(promptText).width;
+        // context.fillStyle = "rgba(0,0,0,0.5)";
+        // context.fillRect(textX - textWidth / 2 - 5, textY - 18, textWidth + 10, 24);
+        
+        context.strokeText(promptText, textX, textY);
+        context.fillStyle = "white"; // Kembalikan fillStyle
+        context.fillText(promptText, textX, textY);
+      }
+
       animationFrameId = requestAnimationFrame(drawGame);
     };
 
@@ -186,9 +214,7 @@ function GameCanvas({ mapImageSrc, characterImageSrc }) {
       drawGame();
     } else {
       context.clearRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
-      context.font = "16px Arial";
-      context.fillStyle = "black";
-      context.textAlign = "center";
+      context.font = "16px Arial"; context.fillStyle = "black"; context.textAlign = "center";
       context.fillText("Loading assets...", VIEWPORT_WIDTH / 2, VIEWPORT_HEIGHT / 2);
     }
 
@@ -196,26 +222,19 @@ function GameCanvas({ mapImageSrc, characterImageSrc }) {
       cancelAnimationFrame(animationFrameId);
     };
   }, [
-    mapImage, characterImage, mapDimensions, cameraPosition,
-    characterWorldPosition, currentFrame, isCharacterImageLoaded, assetsReady,
-    activeKeysRef, updateWorldPosition,
-    facingDirection // <-- Tambahkan facingDirection ke array dependensi
-    // isMoving, // Tambahkan isMoving jika Anda menggunakannya dalam useEffect ini
+    assetsReady, characterWorldPosition, mapDimensions, cameraPosition,
+    updateWorldPosition, activeKeysRef, characterImage, isCharacterImageLoaded, mapImage,
+    currentFrame, facingDirection, interactionKeyRef, canInteractWithDoor, handleEnterHouse
+    // Pastikan semua dependensi yang reaktif (state, props, fungsi yang dimemoize) ada di sini
   ]);
 
-  return (
+  return ( /* ... JSX canvas Anda ... */
     <div style={{ position: 'relative', width: `${VIEWPORT_WIDTH}px`, height: `${VIEWPORT_HEIGHT}px` }}>
-      <canvas
-        ref={canvasRef}
-        style={{ border: '1px solid black', display: 'block' }}
-      />
+      <canvas ref={canvasRef} style={{ border: '1px solid black', display: 'block' }} />
       <MinimapCanvas
-        mapImage={mapImage}
-        mapDimensions={mapDimensions}
-        characterWorldPosition={characterWorldPosition}
-        cameraPosition={cameraPosition}
-        mainViewportWidth={VIEWPORT_WIDTH}
-        mainViewportHeight={VIEWPORT_HEIGHT}
+        mapImage={mapImage} mapDimensions={mapDimensions}
+        characterWorldPosition={characterWorldPosition} cameraPosition={cameraPosition}
+        mainViewportWidth={VIEWPORT_WIDTH} mainViewportHeight={VIEWPORT_HEIGHT}
         assetsReady={assetsReady}
       />
     </div>
