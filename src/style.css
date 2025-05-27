@@ -1050,3 +1050,33 @@ h1 {
   z-index: 3;
 }
 
+html,body{
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.title-box {
+  opacity: 0;
+  transform: translateY(80px);
+  transition: opacity 0.7s cubic-bezier(.4,2,.6,1), transform 0.7s cubic-bezier(.4,2,.6,1);
+}
+.title-box.slide-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* style.css */
+.title-loader {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #4caf50;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 32px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

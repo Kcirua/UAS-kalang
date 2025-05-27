@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import GlitchLogo from './GlitchLogo'; // Import your glitch component
 
 function StardewFade({ logoSrc, secondLogoSrc }) {
-  const [firstLogoState, setFirstLogoState] = useState('fadein'); // 'fadein', 'fadeout', 'hidden'
-  const [secondLogoState, setSecondLogoState] = useState('hidden'); // 'hidden', 'fadein', 'fadeout'
+  const [firstLogoState, setFirstLogoState] = useState('fadein');
+  const [secondLogoState, setSecondLogoState] = useState('hidden');
   const [hideOverlay, setHideOverlay] = useState(false);
   const [overlayClass, setOverlayClass] = useState('');
 
@@ -39,21 +40,24 @@ function StardewFade({ logoSrc, secondLogoSrc }) {
     !hideOverlay && (
       <div className={`stardew-fade-overlay ${overlayClass}`}>
         {logoSrc && firstLogoState !== 'hidden' && (
-          <img
-            src={logoSrc}
-            alt="First Logo"
+          <div
             className={firstLogoState === 'fadeout' ? "stardew-logo-fadeout" : "stardew-logo-fadein"}
             style={{
               position: 'absolute',
-              top: '50%',
+              top: '30%', // <-- Move the logo a bit lower (more centered)
               left: '50%',
               width: '400px',
               maxWidth: '80vw',
               transform: 'translate(-50%, -50%)',
               pointerEvents: 'none',
               zIndex: 2,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
             }}
-          />
+          >
+            <GlitchLogo />
+          </div>
         )}
         {secondLogoSrc && secondLogoState !== 'hidden' && (
           <img
