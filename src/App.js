@@ -9,7 +9,7 @@ import GameOverPage from './pages/GameOverPage';
 import './style.css';
 import bgMusicFile from './assets/audio/bg-music.mp3';
 import StardewFade from './components/StardewFade';
-import logo from './assets/your-logo.png';
+import logo from './assets/logoStudio.png';
 import secondLogo from './assets/secondLogo.png';
 import Cloud from './components/Cloud';
 import Star from './components/Star';
@@ -19,7 +19,6 @@ import cloud3 from './assets/cloud 3.png';
 import cloud4 from './assets/cloud 4.png';
 import cloud5 from './assets/cloud 5.png';
 import cloud6 from './assets/cloud 6.png';
-import ElasticSlider from './components/ElasticSlider';
 
 const cloudImages = [cloud1, cloud2, cloud3, cloud4, cloud5, cloud6];
 
@@ -113,6 +112,11 @@ function App() {
     }
   };
 
+  const handleVolumeChange = (e) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+  };
+
   return (
     <Router>
       <div className="app-container">
@@ -141,15 +145,15 @@ function App() {
             >
               {audioEnabled ? '🔊' : '🔇'}
             </button>
-            <ElasticSlider
-              defaultValue={volume * 100}
-              maxValue={100}
-              onChange={val => {
-                setVolume(val / 100);
-                if (audioRef.current) {
-                  audioRef.current.volume = val / 100;
-                }
-              }}
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={volume}
+              onChange={handleVolumeChange}
+              className="volume-slider"
+              aria-label="Volume"
             />
           </div>
         )}

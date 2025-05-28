@@ -1,70 +1,98 @@
 // src/game/useCharacter.js
-import { useState, useEffect, useRef, useCallback } from 'react'; // [cite: 120]
+import { useState, useEffect, useRef, useCallback } from 'react'; // [cite: 180]
+import { DEFAULT_SPRITE_CONFIG } from './gameConstants'; // Asumsi SLEEP_SPRITE_CONFIG akan didefinisikan di sini atau di gameConstants
+
+// Definisikan konfigurasi sprite tidur (bisa juga di gameConstants.js)
+export const SLEEP_SPRITE_CONFIG = {
+  numFrames: 7, // Jumlah frame animasi tidur (misalnya)
+  frameWidth: 64, // Lebar frame
+  frameHeight: 64, // Tinggi frame
+  animationSpeedMs: 500, // Kecepatan animasi tidur
+  rowIndex: 3, // Baris pada sprite sheet untuk animasi tidur (0-indexed)
+};
 
 function useCharacter({
-  initialPosition, // Ini akan menjadi dinamis
-  spriteConfig,
+  initialPosition,
+  spriteConfig = DEFAULT_SPRITE_CONFIG, // Default ke sprite biasa
+  // isCurrentlySleeping, // Prop BARU untuk mengontrol status tidur dari luar
 }) {
-  const [worldPosition, setWorldPosition] = useState(initialPosition);
-  const [isMoving, setIsMoving] = useState(false); // [cite: 121]
-  const [currentFrame, setCurrentFrame] = useState(0); // [cite: 121]
-  const [facingDirection, setFacingDirection] = useState('right');
-  const activeKeysRef = useRef(new Set());
-  const interactionKeyRef = useRef(false); // [cite: 122]
+  const [worldPosition, setWorldPosition] = useState(initialPosition); // [cite: 181]
+  const [isMoving, setIsMoving] = useState(false); // [cite: 182]
+  const [currentFrame, setCurrentFrame] = useState(0); // [cite: 182]
+  const [facingDirection, setFacingDirection] = useState('right'); // [cite: 183]
+  const activeKeysRef = useRef(new Set()); // [cite: 183]
+  const interactionKeyRef = useRef(false); // [cite: 183]
 
-  const updateWorldPosition = useCallback((newPosition) => {
+  // BARU: State internal untuk status tidur, dikontrol oleh fungsi
+  const [isSleepingForAnimation, setIsSleepingForAnimation] = useState(false);
+
+  const updateWorldPosition = useCallback((newPosition) => { // [cite: 184]
     setWorldPosition(newPosition);
-  }, []); // [cite: 123]
+  }, []);
 
-  // EFEK BARU: Reset posisi dunia karakter jika initialPosition prop berubah
-  useEffect(() => {
+  useEffect(() => { // [cite: 185]
     setWorldPosition(initialPosition);
+    setIsSleepingForAnimation(false); // Pastikan tidak tidur saat posisi reset
   }, [initialPosition]);
 
-  // useEffect untuk handleKeyDown dan handleKeyUp (tidak berubah signifikan)
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      const moveKeys = ['arrowup', 'w', 'arrowdown', 's', 'arrowleft', 'a', 'arrowright', 'd']; // sudah lowercase
-      const interactionKeys = ['e', 'enter'];
+  // BARU: Fungsi untuk mengontrol status tidur untuk animasi
+  const setSleepingState = useCallback((shouldSleep) => {
+    setIsSleepingForAnimation(shouldSleep);
+    if (shouldSleep) {
+      setIsMoving(false); // Karakter tidak bergerak saat tidur
+      activeKeysRef.current.clear(); // Hapus semua input gerakan aktif
+      setCurrentFrame(0); // Mulai animasi tidur dari frame pertama
+    }
+  }, []);
 
+
+  useEffect(() => {
+    const handleKeyDown = (event) => { // [cite: 186]
+      if (isSleepingForAnimation) return; // Abaikan input jika sedang tidur
+
+      const moveKeys = ['arrowup', 'w', 'arrowdown', 's', 'arrowleft', 'a', 'arrowright', 'd'];
+      const interactionKeys = ['e', 'enter'];
       const keyLower = event.key.toLowerCase();
 
-      if (moveKeys.includes(keyLower)) { // [cite: 124]
+      if (moveKeys.includes(keyLower)) { // [cite: 186]
         event.preventDefault();
         activeKeysRef.current.add(keyLower);
         if (!isMoving) setIsMoving(true);
-        if (keyLower === 'arrowleft' || keyLower === 'a') {
-          setFacingDirection('left'); // [cite: 124]
+        if (keyLower === 'arrowleft' || keyLower === 'a') { // [cite: 186]
+          setFacingDirection('left');
         } else if (keyLower === 'arrowright' || keyLower === 'd') {
           setFacingDirection('right');
         }
       }
-
-      if (interactionKeys.includes(keyLower)) {
+      if (interactionKeys.includes(keyLower)) { // [cite: 187]
         event.preventDefault();
         interactionKeyRef.current = true;
       }
     };
 
-    const handleKeyUp = (event) => {
-      const moveKeys = ['arrowup', 'w', 'arrowdown', 's', 'arrowleft', 'a', 'arrowright', 'd']; // [cite: 125]
-      const keyLower = event.key.toLowerCase();
+    const handleKeyUp = (event) => { // [cite: 188]
+      if (isSleepingForAnimation && (event.key.toLowerCase() === 'e' || event.key.toLowerCase() === 'enter')) {
+        // Jika tidur dan E ditekan, mungkin untuk bangun? Untuk sekarang, E tidak akan membangunkan.
+        // Logika bangun akan ditangani oleh MainPage.js melalui timeout.
+      }
+      if (isSleepingForAnimation) return; // Abaikan input jika sedang tidur
 
-      if (moveKeys.includes(keyLower)) { // [cite: 126]
+      const moveKeys = ['arrowup', 'w', 'arrowdown', 's', 'arrowleft', 'a', 'arrowright', 'd'];
+      const keyLower = event.key.toLowerCase(); // [cite: 189]
+      if (moveKeys.includes(keyLower)) { // [cite: 190]
         event.preventDefault();
-        activeKeysRef.current.delete(keyLower); // [cite: 127]
+        activeKeysRef.current.delete(keyLower); // [cite: 190]
         if (activeKeysRef.current.size === 0) {
-          setIsMoving(false); // [cite: 128]
+          setIsMoving(false); // [cite: 191]
         } else {
-          const keys = activeKeysRef.current;
-          if (!keys.has('arrowleft') && !keys.has('a') && (keys.has('arrowright') || keys.has('d'))) { // [cite: 129]
-            setFacingDirection('right'); // [cite: 130]
-          } else if (!keys.has('arrowright') && !keys.has('d') && (keys.has('arrowleft') || keys.has('a'))) { // [cite: 130]
-            setFacingDirection('left'); // [cite: 131]
+          const keys = activeKeysRef.current; // [cite: 192]
+          if (!keys.has('arrowleft') && !keys.has('a') && (keys.has('arrowright') || keys.has('d'))) { // [cite: 193]
+            setFacingDirection('right');
+          } else if (!keys.has('arrowright') && !keys.has('d') && (keys.has('arrowleft') || keys.has('a'))) { // [cite: 194]
+            setFacingDirection('left');
           }
         }
       }
-      // interactionKeyRef di-reset di GameCanvas [cite: 132]
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -72,29 +100,36 @@ function useCharacter({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
-    }; // [cite: 133]
-  }, [isMoving]); // [cite: 133]
+    };
+  }, [isMoving, isSleepingForAnimation]); // Tambahkan isSleepingForAnimation ke dependency
 
-  // Efek untuk animasi frame karakter (tidak berubah)
   useEffect(() => {
-    if (!isMoving) {
-      setCurrentFrame(0);
-      return;
+    let animationInterval;
+    if (isSleepingForAnimation) {
+      animationInterval = setInterval(() => {
+        setCurrentFrame(prevFrame => (prevFrame + 1) % SLEEP_SPRITE_CONFIG.numFrames);
+      }, SLEEP_SPRITE_CONFIG.animationSpeedMs);
+    } else if (isMoving) {
+      animationInterval = setInterval(() => {
+        setCurrentFrame(prevFrame => (prevFrame + 1) % spriteConfig.numFrames);
+      }, spriteConfig.animationSpeedMs);
+    } else {
+      setCurrentFrame(0); // Frame diam
     }
-    const animationInterval = setInterval(() => {
-      setCurrentFrame(prevFrame => (prevFrame + 1) % spriteConfig.numFrames);
-    }, spriteConfig.animationSpeedMs);
     return () => clearInterval(animationInterval);
-  }, [isMoving, spriteConfig.numFrames, spriteConfig.animationSpeedMs]); // [cite: 134]
+  }, [isMoving, isSleepingForAnimation, spriteConfig]); // Tambahkan isSleepingForAnimation
 
   return {
     characterWorldPosition: worldPosition,
     updateWorldPosition,
-    isMoving,
+    isMoving, // Tetap ada untuk animasi jalan jika tidak tidur
     currentFrame,
     facingDirection,
     activeKeysRef,
-    interactionKeyRef, // [cite: 135]
+    interactionKeyRef,
+    isSleeping: isSleepingForAnimation, // Expose status tidur untuk rendering
+    setSleepingState, // Expose fungsi untuk dikontrol dari GameCanvas/MainPage
+    spriteConfigToUse: isSleepingForAnimation ? SLEEP_SPRITE_CONFIG : spriteConfig, // Memberikan config sprite yang sesuai
   };
 }
 

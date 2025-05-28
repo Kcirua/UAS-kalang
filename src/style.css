@@ -400,6 +400,10 @@ h1 {
   color: white;
 }
 
+.action-buttons {
+height: 290px;
+}
+
 .joystick {
   display: flex;
   flex-direction: column;
@@ -799,7 +803,7 @@ h1 {
   display: flex;
   align-items: center;
   gap: 10px;
-  z-index: 10;
+  z-index: 999;
   background: rgba(0, 0, 0, 0.2);
   padding: 8px;
   border-radius: 20px;
@@ -864,83 +868,189 @@ h1 {
   background: rgba(255, 255, 255, 0.4);
 }
 
-/* Volume Bar Styles */
-.slider-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  width: 12rem;
+/* Character Info Styles */
+.character-info {
+  margin: 15px 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
 }
 
-.slider-wrapper {
-  display: flex;
-  width: 100%;
-  touch-action: none;
-  user-select: none;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
+.avatar-description {
+  color: #4a3000;
+  font-size: 1rem;
+  margin: 5px 0 0;
+  font-style: italic;
+  text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.3);
 }
 
-.slider-root {
+/* Avatar Animation */
+@keyframes avatarBounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.avatar-bounce {
+  animation: avatarBounce 0.5s ease-in-out;
+}
+
+/* Name Input Enhancements */
+.name-length-indicator {
+  color: #4a3000;
+  font-size: 0.8rem;
+  text-align: right;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  opacity: 0.7;
+}
+
+.lobby-input:focus {
+  box-shadow: 0 0 0 3px rgba(160, 106, 63, 0.3);
+  border-color: #a06a3f;
+}
+
+/* Button Enhancements */
+.nav-btn {
+  transition: all 0.2s ease;
   position: relative;
-  display: flex;
-  width: 100%;
-  max-width: 200px;
-  flex-grow: 1;
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-  align-items: center;
-  padding: 1rem 0;
-}
-
-.slider-root:active {
-  cursor: grabbing;
-}
-
-.slider-track-wrapper {
-  display: flex;
-  flex-grow: 1;
-}
-
-.slider-track {
-  position: relative;
-  height: 100%;
-  flex-grow: 1;
   overflow: hidden;
-  border-radius: 9999px;
-  background-color: rgba(128, 128, 128, 0.4);
 }
 
-.slider-range {
+.nav-btn:hover {
+  transform: scale(1.1);
+  background: #ffd89e;
+}
+
+.nav-btn:active {
+  transform: scale(0.95);
+}
+
+.nav-btn::after {
+  content: '';
   position: absolute;
-  height: 100%;
-  background-color: #888;
-  border-radius: 9999px;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.3s ease;
 }
 
-.value-indicator {
-  color: #808080;
+.nav-btn:hover::after {
+  transform: translate(-50%, -50%) scale(20);
+  opacity: 0;
+}
+
+.start-button.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #d4b276;
+}
+
+/* Avatar Display Enhancement */
+.avatar-display {
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.avatar-display:hover {
+  transform: scale(1.05);
+}
+
+.avatar-display img {
+  transition: filter 0.3s ease;
+}
+
+.avatar-display:hover img {
+  filter: brightness(1.1);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 576px) {
+  .character-info {
+    margin: 10px 0;
+    padding: 8px;
+  }
+
+  .avatar-description {
+    font-size: 0.9rem;
+  }
+
+  .name-length-indicator {
+    font-size: 0.7rem;
+  }
+}
+
+/* Input Section Styles */
+.input-section {
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 10;
+}
+
+.input-wrapper {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.lobby-input {
+  width: 100%;
+  padding: 12px 15px;
+  font-size: 1.1rem;
+  border: 4px solid #a06a3f;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #4a3000;
+  font-family: "Bubblegum Sans", cursive;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.lobby-input:focus {
+  outline: none;
+  border-color: #874e1f;
+  box-shadow: 0 0 0 3px rgba(135, 78, 31, 0.3);
+  background: white;
+}
+
+.lobby-input::placeholder {
+  color: #a06a3f;
+  opacity: 0.7;
+}
+
+.name-length-indicator {
   position: absolute;
-  transform: translateY(-1rem);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
+  right: 5px;
+  bottom: -20px;
+  color: #4a3000;
+  font-size: 0.8rem;
+  text-align: right;
+  opacity: 0.7;
+  z-index: 2;
 }
 
-.icon {
-  width: 24px;
-  height: 24px;
-  color: #888;
+/* Ensure buttons are above other elements */
+.start-button, .button-link {
+  position: relative;
+  z-index: 2;
+  margin: 10px auto;
 }
 
-.icon.dark {
-  color: #ddd;
+/* Update title box to ensure proper stacking */
+.title-box-lobby {
+  position: relative;
+  z-index: 1;
 }
 
-.input-section, .input-wrapper, .lobby-input {
-  z-index: 20;
+/* Ensure avatar carousel is above other elements */
+.avatar-carousel {
+  position: relative;
+  z-index: 3;
 }
+

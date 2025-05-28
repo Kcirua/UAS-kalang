@@ -132,7 +132,7 @@ function LobbyPage() {
                 onChange={handleInputChange}
                 maxLength={15}
               />
-              <div className="name-length-indicator">
+              <div className="name-length-indicator m-1">
                 {playerName.length}/15 characters
               </div>
             </div>

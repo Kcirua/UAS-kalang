@@ -14,49 +14,58 @@ import { getCollisionTileValue } from './collisionData'; // [cite: 39]
  * @returns {number} Jenis tile (1 solid, 2 pintu, 3 rawa, 4 gua, 0 bisa dilewati). [cite: 45]
  */
 export function getOverlappingTileType(worldX, worldY, charWidth, charHeight, currentCollisionMapConfig) {
-  if (!currentCollisionMapConfig) return 0; // [cite: 46]
+  
+  if (!currentCollisionMapConfig) return 0; //
 
-  const { tileWidth, tileHeight } = currentCollisionMapConfig; // [cite: 47]
-  const startCol = Math.floor(worldX / tileWidth); // [cite: 48]
-  const endCol = Math.floor((worldX + charWidth - 1) / tileWidth); // [cite: 48]
-  const startRow = Math.floor(worldY / tileHeight); // [cite: 49]
-  const endRow = Math.floor((worldY + charHeight - 1) / tileHeight); // [cite: 49]
+  const { tileWidth, tileHeight } = currentCollisionMapConfig; //
+  const startCol = Math.floor(worldX / tileWidth); //
+  const endCol = Math.floor((worldX + charWidth - 1) / tileWidth); //
+  const startRow = Math.floor(worldY / tileHeight); //
+  const endRow = Math.floor((worldY + charHeight - 1) / tileHeight); //
 
-  let isOverlappingSolid = false; // [cite: 49]
-  let isOverlappingDoor = false; // [cite: 50]
-  let isOverlappingSwamp = false;
-  let isOverlappingCave = false; // Variabel baru untuk tile gua
+  let isOverlappingSolid = false;
+  let isOverlappingDoor = false; //
+  let isOverlappingSwamp = false; //
+  let isOverlappingCave = false; //
+  let isOverlappingBed = false; // BARU: untuk tile tempat tidur
 
   for (let r = startRow; r <= endRow; r++) {
     for (let c = startCol; c <= endCol; c++) {
-      const tileType = getCollisionTileValue(c, r, currentCollisionMapConfig); // [cite: 50]
+      const tileType = getCollisionTileValue(c, r, currentCollisionMapConfig); //
       if (tileType === 1) {
-        isOverlappingSolid = true; // [cite: 51]
+        isOverlappingSolid = true; //
       } else if (tileType === 2) {
-        isOverlappingDoor = true; // [cite: 52]
+        isOverlappingDoor = true; //
       } else if (tileType === 3) {
-        isOverlappingSwamp = true;
-      } else if (tileType === 4) { // Cek untuk tile gua
-        isOverlappingCave = true;
+        isOverlappingSwamp = true; //
+      } else if (tileType === 4) {
+        isOverlappingCave = true; //
+      } else if (tileType === 99) { // BARU: Cek untuk tile tempat tidur
+        isOverlappingBed = true;
       }
     }
   }
 
   // Logika Prioritas:
-  if (isOverlappingSolid) {
-    return 1; // [cite: 56]
+  if (isOverlappingSolid) { // Solid memiliki prioritas tertinggi
+    return 1; //
   }
+  // Kemudian tile interaktif lainnya
   if (isOverlappingDoor) {
-    return 2; // [cite: 57]
+    return 2; //
   }
   if (isOverlappingSwamp) {
-    return 3;
+    return 3; //
   }
   if (isOverlappingCave) {
-    return 4; // Tile gua terdeteksi
+    return 4;
   }
-  return 0; // [cite: 58]
+  if (isOverlappingBed) { // BARU: Tambahkan tempat tidur
+    return 99;
+  }
+  return 0; //
 }
+
 
 /**
  * Memeriksa apakah bounding box karakter tumpang tindih dengan tile solid (tipe 1).
