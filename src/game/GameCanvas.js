@@ -1,17 +1,17 @@
 // src/game/GameCanvas.js
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react'; //
 import {
   VIEWPORT_WIDTH, VIEWPORT_HEIGHT, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT,
   CHARACTER_VIEWPORT_OFFSET_X, CHARACTER_VIEWPORT_OFFSET_Y,
-  DEFAULT_SPRITE_CONFIG, CHARACTER_STEP_SIZE, DEBUG_DRAW_COLLISION,
-} from './gameConstants'; // [cite: 462, 463]
-import useGameAssets from './useGameAssets'; // [cite: 463]
-import useCamera from './useCamera'; // [cite: 463]
-import useCharacter from './useCharacter'; // Impor default useCharacter
-// SLEEP_SPRITE_CONFIG akan diambil dari characterHook.spriteConfigToUse jika isSleeping
-import MinimapCanvas from '../pages/MinimapCanvas'; // [cite: 464]
-import { getOverlappingTileType } from './collisionUtils'; // [cite: 465]
-import { collisionMapsData } from './collisionData'; // [cite: 465]
+  CHARACTER_STEP_SIZE, DEBUG_DRAW_COLLISION,
+  // DEFAULT_SPRITE_CONFIG, // Tidak perlu diimpor langsung jika sudah dari useCharacter
+} from './gameConstants'; //
+import useGameAssets from './useGameAssets'; //
+import useCamera from './useCamera'; //
+import useCharacter from './useCharacter'; //
+import MinimapCanvas from '../pages/MinimapCanvas'; //
+import { getOverlappingTileType } from './collisionUtils'; //
+import { collisionMapsData } from './collisionData'; //
 
 function GameCanvas({
   mapImageSrc,
@@ -19,63 +19,63 @@ function GameCanvas({
   currentMapKey,
   initialCharacterPosition,
   onMapTransitionRequest,
-  onInteractionAvailable,      // Callback ke MainPage tentang tile interaktif
-  isCharacterCurrentlySleeping, // Boolean dari MainPage untuk status tidur
-  onBedInteraction,            // Callback ke MainPage saat 'E' ditekan di kasur (tile 99)
+  onInteractionAvailable,
+  isCharacterCurrentlySleeping,
+  onBedInteraction,
 }) {
-  const canvasRef = useRef(null); // [cite: 466]
+  const canvasRef = useRef(null); //
   const {
     mapImage, characterImage, mapDimensions, isCharacterImageLoaded, assetsReady
-  } = useGameAssets(mapImageSrc, characterImageSrc); // [cite: 467]
+  } = useGameAssets(mapImageSrc, characterImageSrc); //
 
   const characterHook = useCharacter({ //
     initialPosition: initialCharacterPosition,
-    spriteConfig: DEFAULT_SPRITE_CONFIG, // Ini akan menjadi default, useCharacter akan switch ke SLEEP_SPRITE_CONFIG jika tidur
-  });
+    // spriteConfig tidak lagi dioper dari sini, useCharacter menentukannya secara internal
+  }); //
   const {
     characterWorldPosition, updateWorldPosition, currentFrame,
     activeKeysRef, facingDirection, interactionKeyRef,
     isSleeping,         // Status animasi tidur dari useCharacter
     setSleepingState,   // Fungsi untuk memberitahu useCharacter agar memulai/menghentikan animasi tidur
-    spriteConfigToUse,  // Config sprite yang sedang aktif (normal atau tidur) dari useCharacter
-  } = characterHook;
+    spriteConfigToUse,  // Config sprite yang sedang aktif (normal, tidur, atau idle) dari useCharacter
+    isMoving,           // Kita butuh isMoving dari characterHook untuk logika rendering
+  } = characterHook; //
 
-  // State lokal untuk interaksi tombol 'E'
-  const [canInteractWithEKey, setCanInteractWithEKey] = useState(false);
-  const [interactionTileTypeForEKey, setInteractionTileTypeForEKey] = useState(0);
+  const [canInteractWithEKey, setCanInteractWithEKey] = useState(false); //
+  const [interactionTileTypeForEKey, setInteractionTileTypeForEKey] = useState(0); //
 
-  const { cameraPosition } = useCamera({ // [cite: 469, 470]
+  const { cameraPosition } = useCamera({ //
     characterWorldPosition, mapDimensions, viewportWidth: VIEWPORT_WIDTH, viewportHeight: VIEWPORT_HEIGHT,
     characterViewportOffsetX: CHARACTER_VIEWPORT_OFFSET_X || VIEWPORT_WIDTH / 2,
     characterViewportOffsetY: CHARACTER_VIEWPORT_OFFSET_Y || VIEWPORT_HEIGHT / 2,
     assetsReady,
-  });
-  const activeCollisionMapConfig = collisionMapsData[currentMapKey]; // [cite: 470]
+  }); //
+  const activeCollisionMapConfig = collisionMapsData[currentMapKey]; //
 
   // Sinkronkan status tidur dari MainPage ke hook useCharacter
-  useEffect(() => {
+  useEffect(() => { //
     if (setSleepingState) {
       setSleepingState(isCharacterCurrentlySleeping);
     }
-  }, [isCharacterCurrentlySleeping, setSleepingState]);
+  }, [isCharacterCurrentlySleeping, setSleepingState]); //
 
   // Handler untuk interaksi tombol 'E'
-  const handleEKeyInteraction = useCallback(() => {
+  const handleEKeyInteraction = useCallback(() => { //
     if (isSleeping) return; // Jangan lakukan interaksi jika sedang tidur
 
-    if (interactionTileTypeForEKey === 2) { // Pintu Rumah / Gua [cite: 470, 471]
+    if (interactionTileTypeForEKey === 2) { // Pintu Rumah / Gua
       if (currentMapKey === 'world') {
         onMapTransitionRequest('house');
       } else if (currentMapKey === 'house' || currentMapKey === 'caves') {
         onMapTransitionRequest('world');
       }
-    } else if (interactionTileTypeForEKey === 3) { // Pintu Rawa [cite: 471, 472]
+    } else if (interactionTileTypeForEKey === 3) { // Pintu Rawa
       if (currentMapKey === 'world') {
         onMapTransitionRequest('swamp');
       } else if (currentMapKey === 'swamp') { // Keluar dari rawa pakai tile 3
         onMapTransitionRequest('world');
       }
-    } else if (interactionTileTypeForEKey === 4) { // Pintu Gua dari Dunia [cite: 472, 473]
+    } else if (interactionTileTypeForEKey === 4) { // Pintu Gua dari Dunia
       if (currentMapKey === 'world') {
         onMapTransitionRequest('caves');
       }
@@ -84,21 +84,20 @@ function GameCanvas({
         onBedInteraction(); // Panggil handler dari MainPage
       }
     }
-  }, [currentMapKey, onMapTransitionRequest, interactionTileTypeForEKey, onBedInteraction, isSleeping]);
+  }, [currentMapKey, onMapTransitionRequest, interactionTileTypeForEKey, onBedInteraction, isSleeping]); //
 
   // Deteksi tile interaktif untuk onInteractionAvailable dan tombol 'E'
-  useEffect(() => {
+  useEffect(() => { //
     if (!assetsReady || !mapDimensions.width || !mapDimensions.height || !activeCollisionMapConfig) {
-      setCanInteractWithEKey(false);
-      setInteractionTileTypeForEKey(0);
+      setCanInteractWithEKey(false); //
+      setInteractionTileTypeForEKey(0); //
       if (onInteractionAvailable) onInteractionAvailable(0);
       return;
     }
-    // Hanya deteksi interaksi jika tidak sedang tidur
     let currentDetectedTileType = 0;
-    if (!isSleeping) {
-        currentDetectedTileType = getOverlappingTileType(
-            characterWorldPosition.x, characterWorldPosition.y,
+    if (!isSleeping) { // Hanya deteksi interaksi jika tidak sedang tidur
+        currentDetectedTileType = getOverlappingTileType( //
+            characterWorldPosition.x, characterWorldPosition.y, //
             CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig
         );
     }
@@ -108,18 +107,17 @@ function GameCanvas({
     }
 
     // Update state lokal untuk tombol 'E'
-    if (!isSleeping && (currentDetectedTileType === 2 || currentDetectedTileType === 3 || currentDetectedTileType === 4 || currentDetectedTileType === 99)) { // [cite: 475]
-      setCanInteractWithEKey(true);
-      setInteractionTileTypeForEKey(currentDetectedTileType);
+    if (!isSleeping && (currentDetectedTileType === 2 || currentDetectedTileType === 3 || currentDetectedTileType === 4 || currentDetectedTileType === 99)) { //
+      setCanInteractWithEKey(true); //
+      setInteractionTileTypeForEKey(currentDetectedTileType); //
     } else {
-      setCanInteractWithEKey(false);
-      setInteractionTileTypeForEKey(0);
+      setCanInteractWithEKey(false); //
+      setInteractionTileTypeForEKey(0); //
     }
-  }, [characterWorldPosition, assetsReady, mapDimensions, activeCollisionMapConfig, onInteractionAvailable, isSleeping, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT]);
-
+  }, [characterWorldPosition, assetsReady, mapDimensions, activeCollisionMapConfig, onInteractionAvailable, isSleeping, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT]); //
 
   // Loop utama game untuk menggambar dan memproses input
-  useEffect(() => {
+  useEffect(() => { //
     const canvas = canvasRef.current;
     if (!canvas) return;
     const context = canvas.getContext('2d');
@@ -131,118 +129,121 @@ function GameCanvas({
 
     const drawGame = () => {
       // 1. Proses Interaksi Tombol 'E'
-      if (interactionKeyRef.current && canInteractWithEKey && !isSleeping) { // [cite: 476, 477]
+      if (interactionKeyRef.current && canInteractWithEKey && !isSleeping) { //
         handleEKeyInteraction();
-        interactionKeyRef.current = false;
+        interactionKeyRef.current = false; //
       }
 
       // 2. Proses Input Gerakan & Update Posisi (Hanya jika tidak tidur)
       if (!isSleeping) { //
-        const activeKeys = activeKeysRef.current; // [cite: 478]
-        const currentX = characterWorldPosition.x; // [cite: 478]
-        const currentY = characterWorldPosition.y; // [cite: 478]
-        let attemptedMoveX = currentX; // [cite: 478]
-        let attemptedMoveY = currentY; // [cite: 478]
+        const activeKeys = activeKeysRef.current; //
+        const currentX = characterWorldPosition.x; //
+        const currentY = characterWorldPosition.y; //
+        let attemptedMoveX = currentX; //
+        let attemptedMoveY = currentY; //
 
-        if (activeKeys && activeKeys.size > 0 && mapDimensions.width > 0 && mapDimensions.height > 0 && activeCollisionMapConfig) { // [cite: 478]
-          if (activeKeys.has('arrowup') || activeKeys.has('w')) attemptedMoveY -= CHARACTER_STEP_SIZE; // [cite: 479]
-          if (activeKeys.has('arrowdown') || activeKeys.has('s')) attemptedMoveY += CHARACTER_STEP_SIZE; // [cite: 480]
-          if (activeKeys.has('arrowleft') || activeKeys.has('a')) attemptedMoveX -= CHARACTER_STEP_SIZE; // [cite: 481]
-          if (activeKeys.has('arrowright') || activeKeys.has('d')) attemptedMoveX += CHARACTER_STEP_SIZE; // [cite: 482]
+        if (activeKeys && activeKeys.size > 0 && mapDimensions.width > 0 && mapDimensions.height > 0 && activeCollisionMapConfig) { //
+          if (activeKeys.has('arrowup') || activeKeys.has('w')) attemptedMoveY -= CHARACTER_STEP_SIZE; //
+          if (activeKeys.has('arrowdown') || activeKeys.has('s')) attemptedMoveY += CHARACTER_STEP_SIZE; //
+          if (activeKeys.has('arrowleft') || activeKeys.has('a')) attemptedMoveX -= CHARACTER_STEP_SIZE; //
+          if (activeKeys.has('arrowright') || activeKeys.has('d')) attemptedMoveX += CHARACTER_STEP_SIZE; //
           
-          attemptedMoveX = Math.max(0, Math.min(attemptedMoveX, mapDimensions.width - CHAR_DISPLAY_WIDTH)); // [cite: 483]
-          attemptedMoveY = Math.max(0, Math.min(attemptedMoveY, mapDimensions.height - CHAR_DISPLAY_HEIGHT)); // [cite: 484]
+          attemptedMoveX = Math.max(0, Math.min(attemptedMoveX, mapDimensions.width - CHAR_DISPLAY_WIDTH)); //
+          attemptedMoveY = Math.max(0, Math.min(attemptedMoveY, mapDimensions.height - CHAR_DISPLAY_HEIGHT)); //
         }
 
-        let finalTargetX = currentX;
-        let finalTargetY = currentY;
+        let finalTargetX = currentX; //
+        let finalTargetY = currentY; //
 
         if (activeCollisionMapConfig) {
           if (attemptedMoveX !== currentX) {
-            const tileTypeX = getOverlappingTileType(attemptedMoveX, currentY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig);
-            if (tileTypeX === 0 || tileTypeX === 2 || tileTypeX === 3 || tileTypeX === 4 || tileTypeX === 99) { // Izinkan berdiri/melewati tile 99 [cite: 487, 488]
-              finalTargetX = attemptedMoveX;
+            const tileTypeX = getOverlappingTileType(attemptedMoveX, currentY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig); //
+            if (tileTypeX === 0 || tileTypeX === 2 || tileTypeX === 3 || tileTypeX === 4 || tileTypeX === 99) { // Izinkan berdiri/melewati tile 99
+              finalTargetX = attemptedMoveX; //
             }
           }
           if (attemptedMoveY !== currentY) {
-            const tileTypeY = getOverlappingTileType(finalTargetX, attemptedMoveY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig);
-            if (tileTypeY === 0 || tileTypeY === 2 || tileTypeY === 3 || tileTypeY === 4 || tileTypeY === 99) { // Izinkan berdiri/melewati tile 99 [cite: 489, 490]
-              finalTargetY = attemptedMoveY;
+            const tileTypeY = getOverlappingTileType(finalTargetX, attemptedMoveY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig); //
+            if (tileTypeY === 0 || tileTypeY === 2 || tileTypeY === 3 || tileTypeY === 4 || tileTypeY === 99) { // Izinkan berdiri/melewati tile 99
+              finalTargetY = attemptedMoveY; //
             }
           }
         } else {
-          finalTargetX = attemptedMoveX; // [cite: 491]
-          finalTargetY = attemptedMoveY; // [cite: 492]
+          finalTargetX = attemptedMoveX; //
+          finalTargetY = attemptedMoveY; //
         }
         
         if (finalTargetX !== currentX || finalTargetY !== currentY) {
-          updateWorldPosition({ x: finalTargetX, y: finalTargetY }); // [cite: 493]
+          updateWorldPosition({ x: finalTargetX, y: finalTargetY }); //
         }
       } // Selesai blok if (!isSleeping) untuk gerakan
 
       // 3. Gambar Semua Elemen Game
-      context.clearRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT); // [cite: 494]
+      context.clearRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT); //
       
       // Gambar Peta
-      if (mapImage && mapDimensions.width > 0 && cameraPosition) { // [cite: 495]
-        context.drawImage(mapImage, cameraPosition.x, cameraPosition.y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT, 0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
+      if (mapImage && mapDimensions.width > 0 && cameraPosition) { //
+        context.drawImage(mapImage, cameraPosition.x, cameraPosition.y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT, 0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT); //
       }
 
       // Gambar Debug Kolisi
-      if (DEBUG_DRAW_COLLISION && activeCollisionMapConfig && activeCollisionMapConfig.data && cameraPosition) { // [cite: 496]
-        const collisionDataArray = activeCollisionMapConfig.data; // [cite: 496]
-        const tileW = activeCollisionMapConfig.tileWidth; // [cite: 497]
-        const tileH = activeCollisionMapConfig.tileHeight; // [cite: 498]
-        const startCol = Math.floor(cameraPosition.x / tileW); // [cite: 499]
-        const endCol = Math.min(startCol + Math.ceil(VIEWPORT_WIDTH / tileW) + 1, collisionDataArray[0] ? collisionDataArray[0].length : 0); // [cite: 500]
-        const startRow = Math.floor(cameraPosition.y / tileH); // [cite: 501]
-        const endRow = Math.min(startRow + Math.ceil(VIEWPORT_HEIGHT / tileH) + 1, collisionDataArray.length); // [cite: 502]
+      if (DEBUG_DRAW_COLLISION && activeCollisionMapConfig && activeCollisionMapConfig.data && cameraPosition) { //
+        const collisionDataArray = activeCollisionMapConfig.data; //
+        const tileW = activeCollisionMapConfig.tileWidth; //
+        const tileH = activeCollisionMapConfig.tileHeight; //
+        const startCol = Math.floor(cameraPosition.x / tileW); //
+        const endCol = Math.min(startCol + Math.ceil(VIEWPORT_WIDTH / tileW) + 1, collisionDataArray[0] ? collisionDataArray[0].length : 0); //
+        const startRow = Math.floor(cameraPosition.y / tileH); //
+        const endRow = Math.min(startRow + Math.ceil(VIEWPORT_HEIGHT / tileH) + 1, collisionDataArray.length); //
 
         for (let r = Math.max(0, startRow); r < endRow; r++) {
           for (let c = Math.max(0, startCol); c < endCol; c++) {
             if (collisionDataArray[r] && collisionDataArray[r][c] !== 0) { 
-              const tileWorldX = c * tileW; // [cite: 503]
-              const tileWorldY = r * tileH; // [cite: 504]
-              const tileViewportX = tileWorldX - cameraPosition.x; // [cite: 505]
-              const tileViewportY = tileWorldY - cameraPosition.y; // [cite: 506]
+              const tileWorldX = c * tileW; //
+              const tileWorldY = r * tileH; //
+              const tileViewportX = tileWorldX - cameraPosition.x; //
+              const tileViewportY = tileWorldY - cameraPosition.y; //
               if (collisionDataArray[r][c] === 1) { 
-                context.fillStyle = 'rgba(255, 0, 0, 0.3)'; // [cite: 507]
+                context.fillStyle = 'rgba(255, 0, 0, 0.3)'; //
               } else if (collisionDataArray[r][c] === 2) { 
-                context.fillStyle = 'rgba(0, 0, 255, 0.3)'; // [cite: 508]
+                context.fillStyle = 'rgba(0, 0, 255, 0.3)'; //
               } else if (collisionDataArray[r][c] === 3) {
-                context.fillStyle = 'rgba(0, 255, 0, 0.3)'; // [cite: 509]
+                context.fillStyle = 'rgba(0, 255, 0, 0.3)'; //
               } else if (collisionDataArray[r][c] === 4) { 
-                context.fillStyle = 'rgba(128, 0, 128, 0.3)'; // [cite: 510]
+                context.fillStyle = 'rgba(128, 0, 128, 0.3)'; //
               } else if (collisionDataArray[r][c] === 99) { // Warna debug untuk tempat tidur
                 context.fillStyle = 'rgba(255, 105, 180, 0.4)'; // Contoh: Pink
               }
-              context.fillRect(tileViewportX, tileViewportY, tileW, tileH); // [cite: 511]
+              context.fillRect(tileViewportX, tileViewportY, tileW, tileH); //
             }
           }
         }
       }
       
       // Gambar Karakter
-      if (cameraPosition && characterImage && isCharacterImageLoaded && spriteConfigToUse) { // [cite: 512]
-        const characterViewportX = characterWorldPosition.x - cameraPosition.x; // [cite: 512]
-        const characterViewportY = characterWorldPosition.y - cameraPosition.y; // [cite: 513]
+      if (cameraPosition && characterImage && isCharacterImageLoaded && spriteConfigToUse) { //
+        const characterViewportX = characterWorldPosition.x - cameraPosition.x; //
+        const characterViewportY = characterWorldPosition.y - cameraPosition.y; //
         
-        let animSourceX = currentFrame * spriteConfigToUse.frameWidth; // [cite: 514]
-        let animSourceY;
+        let animSourceX = currentFrame * spriteConfigToUse.frameWidth; //
+        let animSourceY; //
 
-        if (isSleeping) {
+        // `spriteConfigToUse` sudah berisi `rowIndex` yang benar untuk idle dan sleep
+        // Untuk animasi jalan (DEFAULT_SPRITE_CONFIG), kita tentukan rowIndex berdasarkan facingDirection
+        if (isSleeping || !isMoving) { // Jika tidur ATAU idle
           animSourceY = spriteConfigToUse.rowIndex * spriteConfigToUse.frameHeight;
-        } else {
-            // Logika untuk animasi berjalan atau diam
+          // Jika !isMoving (idle), currentFrame diatur oleh useCharacter untuk animasi idle.
+          // Jika isSleeping, currentFrame diatur oleh useCharacter untuk animasi tidur.
+        } else { // Bergerak (isMoving === true dan !isSleeping)
+            // Tentukan rowIndex untuk animasi jalan berdasarkan facingDirection
+            // Asumsi: baris 0 untuk kanan/default, baris 1 untuk kiri pada spritesheet karakter jalan
+            // **PENTING: Sesuaikan angka 0 dan 1 ini dengan layout spritesheet Anda!**
             if (facingDirection === 'left') {
-                animSourceY = DEFAULT_SPRITE_CONFIG.frameHeight * 0; // Asumsi baris ke-4 untuk jalan kiri di DEFAULT_SPRITE_CONFIG [cite: 516]
-            } else {
-                animSourceY = DEFAULT_SPRITE_CONFIG.frameHeight * 0; // Asumsi baris ke-0 untuk jalan kanan/diam di DEFAULT_SPRITE_CONFIG [cite: 517]
+                animSourceY = 0 * spriteConfigToUse.frameHeight; // Baris untuk jalan kiri
+            } else { // 'right' atau default
+                animSourceY = 0 * spriteConfigToUse.frameHeight; // Baris untuk jalan kanan
             }
-            // Jika tidak bergerak (diam), tampilkan frame pertama dari animasi arah tersebut
-            if (!characterHook.isMoving) { // isMoving dari characterHook
-                animSourceX = 0 * spriteConfigToUse.frameWidth; // Frame pertama
-            }
+            // currentFrame akan diupdate oleh useCharacter untuk animasi jalan
         }
 
         context.drawImage(
@@ -251,39 +252,38 @@ function GameCanvas({
           spriteConfigToUse.frameWidth, spriteConfigToUse.frameHeight,
           characterViewportX, characterViewportY,
           CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT
-        ); // [cite: 518]
+        ); //
       }
       
-      animationFrameId = requestAnimationFrame(drawGame); // [cite: 542]
+      animationFrameId = requestAnimationFrame(drawGame); //
     };
 
     if (assetsReady && activeCollisionMapConfig) {
-      drawGame();
+      drawGame(); //
     } else {
-      context.clearRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT); // [cite: 544]
-      context.font = "16px Arial"; context.fillStyle = "black"; // [cite: 545]
-      context.textAlign = "center"; // [cite: 546]
-      context.fillText("Loading assets...", VIEWPORT_WIDTH / 2, VIEWPORT_HEIGHT / 2); // [cite: 547]
+      // Tampilkan pesan loading jika aset belum siap
+      context.clearRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT); //
+      context.font = "16px Arial"; context.fillStyle = "black"; //
+      context.textAlign = "center"; //
+      context.fillText("Loading assets...", VIEWPORT_WIDTH / 2, VIEWPORT_HEIGHT / 2); //
     }
 
     return () => {
-      cancelAnimationFrame(animationFrameId); // [cite: 548]
+      cancelAnimationFrame(animationFrameId); //
     };
-  }, [
+  }, [ //
     assetsReady, characterWorldPosition, mapDimensions, cameraPosition,
     updateWorldPosition, activeKeysRef, characterImage, isCharacterImageLoaded, mapImage,
     currentFrame, facingDirection, interactionKeyRef, 
-    canInteractWithEKey, handleEKeyInteraction, // Ganti handleInteraction menjadi handleEKeyInteraction
+    canInteractWithEKey, handleEKeyInteraction,
     activeCollisionMapConfig,
-    isSleeping, // Dari characterHook
-    spriteConfigToUse, // Dari characterHook
-    characterHook.isMoving, // Untuk animasi diam
-    // Dependencies yang ada di original user's file: currentMapKey, interactionTileType (sekarang interactionTileTypeForEKey)
-    // currentMapKey dan interactionTileTypeForEKey digunakan dalam handleEKeyInteraction, jadi sudah tercakup.
-  ]);
+    isSleeping,         // Dari characterHook
+    spriteConfigToUse,  // Dari characterHook
+    isMoving,           // Dari characterHook, ditambahkan sebagai dependensi
+  ]); //
 
   return (
-    <div style={{ position: 'relative', width: `${VIEWPORT_WIDTH}px`, height: `${VIEWPORT_HEIGHT}px` }}> {/* [cite: 550] */}
+    <div style={{ position: 'relative', width: `${VIEWPORT_WIDTH}px`, height: `${VIEWPORT_HEIGHT}px` }}> {/* */}
       <canvas ref={canvasRef} style={{ border: '1px solid black', display: 'block' }} />
       <MinimapCanvas
         mapImage={mapImage} mapDimensions={mapDimensions}
@@ -291,7 +291,7 @@ function GameCanvas({
         mainViewportWidth={VIEWPORT_WIDTH} mainViewportHeight={VIEWPORT_HEIGHT}
         assetsReady={assetsReady}
       />
-    </div> // [cite: 550]
+    </div> //
   );
 }
 
