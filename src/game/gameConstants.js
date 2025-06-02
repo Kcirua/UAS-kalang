@@ -29,11 +29,11 @@ export const DEFAULT_SPRITE_CONFIG = {
 
 // Konfigurasi untuk sprite tidur
 export const SLEEP_SPRITE_CONFIG = {
-  numFrames: 7, // Jumlah frame animasi tidur
+  numFrames: 5, // Jumlah frame animasi tidur
   frameWidth: 64, // Lebar frame
   frameHeight: 64, // Tinggi frame
   animationSpeedMs: 500, // Kecepatan animasi tidur
-  rowIndex: 3, // Baris pada sprite sheet untuk animasi tidur (0-indexed, sesuaikan dengan aset Anda)
+  rowIndex: 2, // Baris pada sprite sheet untuk animasi tidur (0-indexed, sesuaikan dengan aset Anda)
 }; //
 
 // BARU: Konfigurasi untuk sprite idle
@@ -42,8 +42,8 @@ export const IDLE_SPRITE_CONFIG = {
   numFrames: 4, // Contoh: 4 frame untuk animasi idle
   frameWidth: 64,
   frameHeight: 64,
-  animationSpeedMs: 150, // Kecepatan animasi idle (mungkin sedikit lebih lambat dari jalan)
-  rowIndex: 2, // Contoh: Baris ke-2 (0-indexed) pada sprite sheet untuk animasi idle
+  animationSpeedMs: 300, // Kecepatan animasi idle (mungkin sedikit lebih lambat dari jalan)
+  rowIndex: 1, // Contoh: Baris ke-2 (0-indexed) pada sprite sheet untuk animasi idle
 };
 
 export const MINIMAP_WIDTH = 150; //
