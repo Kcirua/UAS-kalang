@@ -56,7 +56,7 @@ const ActionPanel = ({
             <button className="btn btn-primary w-100 mb-2" onClick={onExitCave}>Keluar Gua</button>
           </div>
         )}
-        {availableInteractionType === 99 && ( // Bisa ditambahkan kondisi currentMapKey jika perlu, misal currentMapKey === 'house'
+        {availableInteractionType === 99 && (
           <div className="p-1">
             <button className="btn btn-primary w-100 mb-2" onClick={onSleepInBed}>Tidur di Kasur</button>
           </div>

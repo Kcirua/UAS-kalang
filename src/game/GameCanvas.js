@@ -235,7 +235,7 @@ function GameCanvas({
         } else {
             // Logika untuk animasi berjalan atau diam
             if (facingDirection === 'left') {
-                animSourceY = DEFAULT_SPRITE_CONFIG.frameHeight * 4; // Asumsi baris ke-4 untuk jalan kiri di DEFAULT_SPRITE_CONFIG [cite: 516]
+                animSourceY = DEFAULT_SPRITE_CONFIG.frameHeight * 0; // Asumsi baris ke-4 untuk jalan kiri di DEFAULT_SPRITE_CONFIG [cite: 516]
             } else {
                 animSourceY = DEFAULT_SPRITE_CONFIG.frameHeight * 0; // Asumsi baris ke-0 untuk jalan kanan/diam di DEFAULT_SPRITE_CONFIG [cite: 517]
             }

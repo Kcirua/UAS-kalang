@@ -110,8 +110,8 @@ function MainPage() {
     if (stats.money >= 5) {
         setStats(prevStats => ({ 
             ...prevStats, 
-            makan: Math.min(prevStats.makan + 20, 100), 
-            money: prevStats.money - 5 
+            makan: Math.min(prevStats.makan + 10, 100), 
+            money: prevStats.money 
         }));
     } else {
         console.log("Uang tidak cukup untuk makan!"); // [cite: 304]
@@ -120,7 +120,7 @@ function MainPage() {
   const handleBermain = () => { /* ... (tetap sama) ... */ // [cite: 305]
     setStats(prevStats => ({ 
         ...prevStats, 
-        kesenangan: Math.min(prevStats.kesenangan + 30, 100), 
+        kesenangan: Math.min(prevStats.kesenangan + 20, 100), 
         makan: Math.max(prevStats.makan - 10, 0)
     }));
   };

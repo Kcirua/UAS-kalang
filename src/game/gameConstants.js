@@ -19,10 +19,10 @@ export const CHARACTER_STEP_SIZE = 1; // Kecepatan dari kode asli Anda [cite: 70
 
 // Konfigurasi default untuk sprite karakter (blue_mushroom_walk.png)
 export const DEFAULT_SPRITE_CONFIG = {
-  numFrames: 6,        // Jumlah frame animasi
+  numFrames: 4,        // Jumlah frame animasi
   frameWidth: 64,      // Lebar satu frame di spritesheet
   frameHeight: 64,     // Tinggi satu frame di spritesheet
-  animationSpeedMs: 150 // Kecepatan animasi dalam milidetik per frame
+  animationSpeedMs: 200 // Kecepatan animasi dalam milidetik per frame
 };
 
 
