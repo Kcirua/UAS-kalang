@@ -26,14 +26,14 @@ const KEBERSIHAN_DECREMENT = 1; // [cite: 290]
 const mapDetails = { // [cite: 291]
   world: {
     imageSrc: mapBackground,
-    initialPlayerPos: { x: 1335, y: 1760 }, // [cite: 291]
-    entryPointFromHouse: { x: 1335, y: 1800 }, // [cite: 291]
-    entryPointFromSwamp: { x: 140, y: 1850 }, // [cite: 291]
-    entryPointFromCave: { x: 3450, y: 540 }, // [cite: 291]
+    initialPlayerPos: { x: 1600, y: 1500 }, // [cite: 291]
+    entryPointFromHouse: { x: 1600, y: 1500 }, // [cite: 291]
+    entryPointFromSwamp: { x: 400, y: 1850 }, // [cite: 291]
+    entryPointFromCave: { x: 3550, y: 540 }, // [cite: 291]
   },
   house: {
     imageSrc: homeMapBackground,
-    initialPlayerPos: { x: 230, y: 370 }, // [cite: 291]
+    initialPlayerPos: { x: 90, y: 490 }, // [cite: 291]
   },
   swamp: { // [cite: 291]
     imageSrc: swampMapBackground,
