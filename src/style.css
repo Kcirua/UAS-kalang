@@ -449,6 +449,10 @@ height: 290px;
   width: max-content;
 }
 
+.ruangmainnyaa {
+  width: 900px;
+}
+
 .animated-title {
   position: relative;
   z-index: 2;
@@ -1054,3 +1058,180 @@ height: 290px;
   z-index: 3;
 }
 
+
+/* --- Minigame: Diskussion Styles --- */
+/* Gaya ini akan berlaku khusus untuk elemen di dalam .minigame-container */
+
+.minigame-container {
+    --size: min(200px, min(30vh, 30vw));
+    --subsz: calc(0.2 * var(--size));
+    --clr1: #479ce7;
+    --clr2: #ef476f;
+    --clr3: #ffd166;
+    --clr4: #06d6a0;
+}
+
+.minigame-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #1e1e1e;
+    font-family: monospace;
+}
+
+/* BARU: Atur posisi container untuk panah */
+.minigame-container .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.minigame-container .circle {
+    position: absolute;
+    width: var(--size);
+    height: var(--size);
+    background: #fff;
+    border-radius: 100%;
+    left: 0; right: 0; top: 0; bottom: 0;
+    box-shadow: inset 0 0 0 calc(0.3 * var(--size)) #0002;
+    margin: auto;
+    transition: rotate 1s ease-in-out;
+}
+.minigame-container .circle#A { background: var(--clr1); left: calc(var(--size)*1.74); }
+.minigame-container .circle#B { background: var(--clr2); bottom: calc(var(--size)*-1); }
+.minigame-container .circle#C { background: var(--clr3); right: calc(var(--size)*1.74); }
+.minigame-container .circle#D { background: var(--clr4); top: calc(var(--size)*-1); }
+.minigame-container .circle > div {
+    position: absolute;
+    left: calc(50% - var(--subsz)/2);
+    top: 0;
+    width: var(--subsz); height: calc(50%);
+    transform-origin: 50% 100%;
+}
+.minigame-container .circle > div::before {
+    content: ''; display: block; position: relative; top: -1px;
+    width: var(--subsz); height: calc( var(--subsz));
+    background: #1e1e1e;
+    border-bottom-left-radius: var(--subsz);
+    border-bottom-right-radius: var(--subsz);
+}
+.minigame-container .circle > div:nth-child(1){ rotate: 60deg;}
+.minigame-container .circle > div:nth-child(2){ rotate: 120deg;}
+.minigame-container .circle > div:nth-child(3){ rotate: 180deg;}
+.minigame-container .circle > div:nth-child(4){ rotate: 240deg;}
+.minigame-container .circle > div:nth-child(5){ rotate: 300deg;}
+.minigame-container .circle > div::after {
+    position: absolute; display: block;
+    transition: top 0.4s ease-in-out, background 1.2s ease-in;
+    content: ''; color: #fff; 
+    width: calc(0.8 * var(--subsz)); height: calc(0.8 * var(--subsz));
+    left: calc(0.1 * var(--subsz));
+    border-radius: 100%;
+    top: calc(-0.9 * var(--subsz));
+}
+.minigame-container .circle > div[data-cur="a"]::after { top: calc(0.06 * var(--subsz)); background: var(--clr1); transition: top 0.4s ease-in-out, background 0s linear;}
+.minigame-container .circle > div[data-cur="b"]::after { top: calc(0.06 * var(--subsz)); background: var(--clr2); transition: top 0.4s ease-in-out, background 0s linear;}
+.minigame-container .circle > div[data-cur="c"]::after { top: calc(0.06 * var(--subsz)); background: var(--clr3); transition: top 0.4s ease-in-out, background 0s linear;}
+.minigame-container .circle > div[data-cur="d"]::after { top: calc(0.06 * var(--subsz)); background: var(--clr4); transition: top 0.4s ease-in-out, background 0s linear;}
+
+/* DIUBAH: Atur posisi panah secara eksplisit */
+.minigame-container .arrow { 
+    position: absolute; 
+    width: calc(0.42 * var(--size) * 2); /* Lebar untuk menampung 2 panah */
+    height: calc(0.22 * var(--size));
+}
+
+/* Panah D (atas) */
+.minigame-container .arrow.d {
+    top: -250px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Panah B (bawah) */
+.minigame-container .arrow.b {
+    bottom: -250px; /* Disesuaikan agar pas */
+    left: 50%;
+    transform: translateX(-50%) rotate(180deg);
+}
+
+/* Panah A (kanan) */
+.minigame-container .arrow.a {
+    top: 50%;
+    right: 1px; /* Disesuaikan agar pas */
+    transform: translateY(-50%) rotate(90deg);
+}
+
+/* Panah C (kiri) */
+.minigame-container .arrow.c {
+    top: 50%;
+    left: 1px; /* Disesuaikan agar pas */
+    transform: translateY(-50%) rotate(-90deg);
+}
+
+
+.minigame-container .arrow .left, .minigame-container .arrow .right {
+    position: absolute;
+    top: 0;
+    background-size: contain; 
+    background-repeat: no-repeat;
+    width: 65px; 
+    height: 65px;
+    cursor: pointer;
+}
+
+.minigame-container .arrow .left { 
+    left: 0;
+    transform: rotate(180deg);
+}
+.minigame-container .arrow .right { 
+    right: 0;
+    transform: rotate(180deg) rotateY(180deg);
+}
+
+.minigame-container .arrow.a .left, .minigame-container .arrow.a .right { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23479ce7' viewBox='0 0 302.8 302.8'%3E%3Cpath d='M298.4 128.6 235.9 66.1c-.4-.3-1.1-1-1.8-1.5s-1.1-.9-1.8-1.3c-.3-.2-.6-.4-.9-.5-1.2-.8-2.6-1.5-3.9-2.1-1.3-.6-2.5-1.2-3.8-1.7-1.4-.5-2.9-.9-4.3-1.2-1.7-.4-3.5-.6-5.2-.7-2.6-.1-5.3-.2-7.9-.1-2 .1-4 .2-6 .5-4.4.8-8.8 2-12.9 3.6-1.8.7-3.5 1.5-5.2 2.3-1.7.8-3.4 1.7-5 2.7-1.4.9-2.8 1.8-4.1 2.8-1.4.9-2.7 2-4 3.1-1.2.9-2.3 1.9-3.4 2.9l-62.4 62.4c-5.9 5.9-5.9 15.4 0 21.2 5.8 5.9 15.4 5.9 21.2 0l38.8-38.8c-4.3 47.3-39.2 88.3-88.1 98-6.7 1.3-13.5 2-20.2 2.1-14.5.2-28.9-2.5-42.2-7.9-1-.4-2-.8-3-1.3-12.2-5.3-23.5-12.9-33.2-22.5-5.9-5.8-15.4-5.7-21.2.2s-5.7 15.4.2 21.2c8.3 8.2 17.4 15.1 27.2 20.9 21.5 12.7 46 19.4 71.1 19.4h.1c9 0 18.2-.9 27.3-2.7 61.9-12.3 106.1-63.9 112-123.7l35.1 35.1c5.9 5.9 15.4 5.9 21.2 0 5.9-5.8 5.9-15.3 0-21.2z'/%3E%3C/svg%3E"); }
+.minigame-container .arrow.b .left, .minigame-container .arrow.b .right { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23ef476f' viewBox='0 0 302.8 302.8'%3E%3Cpath d='M298.4 128.6 235.9 66.1c-.4-.3-1.1-1-1.8-1.5s-1.1-.9-1.8-1.3c-.3-.2-.6-.4-.9-.5-1.2-.8-2.6-1.5-3.9-2.1-1.3-.6-2.5-1.2-3.8-1.7-1.4-.5-2.9-.9-4.3-1.2-1.7-.4-3.5-.6-5.2-.7-2.6-.1-5.3-.2-7.9-.1-2 .1-4 .2-6 .5-4.4.8-8.8 2-12.9 3.6-1.8.7-3.5 1.5-5.2 2.3-1.7.8-3.4 1.7-5 2.7-1.4.9-2.8 1.8-4.1 2.8-1.4.9-2.7 2-4 3.1-1.2.9-2.3 1.9-3.4 2.9l-62.4 62.4c-5.9 5.9-5.9 15.4 0 21.2 5.8 5.9 15.4 5.9 21.2 0l38.8-38.8c-4.3 47.3-39.2 88.3-88.1 98-6.7 1.3-13.5 2-20.2 2.1-14.5.2-28.9-2.5-42.2-7.9-1-.4-2-.8-3-1.3-12.2-5.3-23.5-12.9-33.2-22.5-5.9-5.8-15.4-5.7-21.2.2s-5.7 15.4.2 21.2c8.3 8.2 17.4 15.1 27.2 20.9 21.5 12.7 46 19.4 71.1 19.4h.1c9 0 18.2-.9 27.3-2.7 61.9-12.3 106.1-63.9 112-123.7l35.1 35.1c5.9 5.9 15.4 5.9 21.2 0 5.9-5.8 5.9-15.3 0-21.2z'/%3E%3C/svg%3E"); }
+.minigame-container .arrow.c .left, .minigame-container .arrow.c .right { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23ffd166' viewBox='0 0 302.8 302.8'%3E%3Cpath d='M298.4 128.6 235.9 66.1c-.4-.3-1.1-1-1.8-1.5s-1.1-.9-1.8-1.3c-.3-.2-.6-.4-.9-.5-1.2-.8-2.6-1.5-3.9-2.1-1.3-.6-2.5-1.2-3.8-1.7-1.4-.5-2.9-.9-4.3-1.2-1.7-.4-3.5-.6-5.2-.7-2.6-.1-5.3-.2-7.9-.1-2 .1-4 .2-6 .5-4.4.8-8.8 2-12.9 3.6-1.8.7-3.5 1.5-5.2 2.3-1.7.8-3.4 1.7-5 2.7-1.4.9-2.8 1.8-4.1 2.8-1.4.9-2.7 2-4 3.1-1.2.9-2.3 1.9-3.4 2.9l-62.4 62.4c-5.9 5.9-5.9 15.4 0 21.2 5.8 5.9 15.4 5.9 21.2 0l38.8-38.8c-4.3 47.3-39.2 88.3-88.1 98-6.7 1.3-13.5 2-20.2 2.1-14.5.2-28.9-2.5-42.2-7.9-1-.4-2-.8-3-1.3-12.2-5.3-23.5-12.9-33.2-22.5-5.9-5.8-15.4-5.7-21.2.2s-5.7 15.4.2 21.2c8.3 8.2 17.4 15.1 27.2 20.9 21.5 12.7 46 19.4 71.1 19.4h.1c9 0 18.2-.9 27.3-2.7 61.9-12.3 106.1-63.9 112-123.7l35.1 35.1c5.9 5.9 15.4 5.9 21.2 0 5.9-5.8 5.9-15.3 0-21.2z'/%3E%3C/svg%3E"); }
+.minigame-container .arrow.d .left, .minigame-container .arrow.d .right { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%2306d6a0' viewBox='0 0 302.8 302.8'%3E%3Cpath d='M298.4 128.6 235.9 66.1c-.4-.3-1.1-1-1.8-1.5s-1.1-.9-1.8-1.3c-.3-.2-.6-.4-.9-.5-1.2-.8-2.6-1.5-3.9-2.1-1.3-.6-2.5-1.2-3.8-1.7-1.4-.5-2.9-.9-4.3-1.2-1.7-.4-3.5-.6-5.2-.7-2.6-.1-5.3-.2-7.9-.1-2 .1-4 .2-6 .5-4.4.8-8.8 2-12.9 3.6-1.8.7-3.5 1.5-5.2 2.3-1.7.8-3.4 1.7-5 2.7-1.4.9-2.8 1.8-4.1 2.8-1.4.9-2.7 2-4 3.1-1.2.9-2.3 1.9-3.4 2.9l-62.4 62.4c-5.9 5.9-5.9 15.4 0 21.2 5.8 5.9 15.4 5.9 21.2 0l38.8-38.8c-4.3 47.3-39.2 88.3-88.1 98-6.7 1.3-13.5 2-20.2 2.1-14.5.2-28.9-2.5-42.2-7.9-1-.4-2-.8-3-1.3-12.2-5.3-23.5-12.9-33.2-22.5-5.9-5.8-15.4-5.7-21.2.2s-5.7 15.4.2 21.2c8.3 8.2 17.4 15.1 27.2 20.9 21.5 12.7 46 19.4 71.1 19.4h.1c9 0 18.2-.9 27.3-2.7 61.9-12.3 106.1-63.9 112-123.7l35.1 35.1c5.9 5.9 15.4 5.9 21.2 0 5.9-5.8 5.9-15.3 0-21.2z'/%3E%3C/svg%3E"); }
+
+.minigame-container .ui {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    width: 100%; height: 100%; z-index: 100; pointer-events: none;
+}
+.minigame-container .ui .title {
+    position: absolute; color: #555; user-select: none;
+    left: 16px; top: 0.4em; font-size: 1.4em;
+}
+.minigame-container .ui .shuffle {
+    position: absolute; right: 1em; top: 1em; padding: 4px 24px;
+    font-size: 1.2em; color: #1e1e1e; background: var(--clr3);
+    border-radius: 2px; pointer-events: all; cursor: pointer; border: 3px solid #0006;
+}
+.minigame-container .ui .shuffle:hover { background: #fffc; }
+.minigame-container .ui .solved {
+    position: absolute; right: 2em; bottom: 1.4em; font-size: 1.4em; color: var(--clr2);
+}
+.minigame-container .ui .solved.true { color: var(--clr4); }
+
+.minigame-container .direction {
+    position: absolute; width: calc(0.5 * var(--size));
+    left: 0; right: 0; top: 0; bottom: 0; margin: auto;
+}
+.minigame-container .direction path { fill: #0002; }
+.minigame-container .direction.top{ top: calc(-0.98 * var(--size)); left: calc(0.03 * var(--size)); rotate: 30deg; }
+.minigame-container .direction.right{ top: calc(0.03 * var(--size)); left: calc(1.7* var(--size)); rotate: 150deg; }
+.minigame-container .direction.bottom{ top: calc(0.98 * var(--size)); left: calc(-0.03 * var(--size)); rotate: 210deg; }
+.minigame-container .direction.left{ top: calc(-0.03 * var(--size)); left: calc(-1.7* var(--size)); rotate: 330deg; }
+.minigame-container .direction.topup{ width: calc(0.18 * var(--size)); top: calc(-0.64 * var(--size)); left: calc(-0 * var(--size)); rotate: 270deg; background: var(--clr4); border-radius: 100%; z-index: -1;}
+.minigame-container .direction.bottomup{ width: calc(0.18 * var(--size)); top: calc(0.64 * var(--size)); left: calc(-0 * var(--size)); rotate: 270deg; background: var(--clr2); border-radius: 100%; z-index: -1; }
+.col-3.align-items-start.flex-column.p-4.action-panel.img-fluid {
+    background-color: rgba(83, 72, 152, 0.7);
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    color: white;
+}
