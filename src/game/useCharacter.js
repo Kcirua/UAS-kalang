@@ -1,28 +1,28 @@
 // src/game/useCharacter.js
 import { useState, useEffect, useRef, useCallback } from 'react'; //
-import { DEFAULT_SPRITE_CONFIG, SLEEP_SPRITE_CONFIG, IDLE_SPRITE_CONFIG } from './gameConstants'; // Impor IDLE_SPRITE_CONFIG
+import { DEFAULT_SPRITE_CONFIG, SLEEP_SPRITE_CONFIG, IDLE_SPRITE_CONFIG } from './gameConstants';
+// Impor IDLE_SPRITE_CONFIG
 
 function useCharacter({
   initialPosition,
 }) {
   const [worldPosition, setWorldPosition] = useState(initialPosition); //
-  const [isMoving, setIsMoving] = useState(false); //
+  const [isMoving, setIsMoving] = useState(false);
   const [currentFrame, setCurrentFrame] = useState(0); //
-  const [facingDirection, setFacingDirection] = useState('right'); //
+  const [facingDirection, setFacingDirection] = useState('down'); // DIUBAH: Default menghadap ke bawah
   const activeKeysRef = useRef(new Set()); //
   const interactionKeyRef = useRef(false); //
-  const [isSleepingForAnimation, setIsSleepingForAnimation] = useState(false); //
+  const [isSleepingForAnimation, setIsSleepingForAnimation] = useState(false);
+  const lastDirectionKey = useRef(null); // BARU: Untuk melacak tombol arah terakhir
 
   const updateWorldPosition = useCallback((newPosition) => { //
     setWorldPosition(newPosition);
-  }, []); //
-
+  }, []);
   useEffect(() => { //
     setWorldPosition(initialPosition);
     setIsSleepingForAnimation(false);
     setCurrentFrame(0); // Reset frame saat posisi berubah
-  }, [initialPosition]); //
-
+  }, [initialPosition]);
   const setSleepingState = useCallback((shouldSleep) => { //
     setIsSleepingForAnimation(shouldSleep);
     if (shouldSleep) {
@@ -32,8 +32,7 @@ function useCharacter({
     } else {
       setCurrentFrame(0); // Reset frame saat bangun (ke frame pertama idle/jalan)
     }
-  }, []); //
-
+  }, []);
   // Event listener untuk input keyboard (gerakan dan interaksi)
   useEffect(() => { //
     const handleKeyDown = (event) => {
@@ -45,12 +44,26 @@ function useCharacter({
 
       if (moveKeys.includes(keyLower)) { //
         event.preventDefault();
-        activeKeysRef.current.add(keyLower);
+
+        // --- PERUBAHAN UTAMA: Logika Gerakan 4 Arah ---
+        // Jika tombol yang ditekan berbeda dari yang terakhir, reset.
+        if (keyLower !== lastDirectionKey.current) {
+            activeKeysRef.current.clear(); // Hapus semua tombol gerakan lain
+            lastDirectionKey.current = keyLower; // Set tombol baru sebagai yang terakhir
+            activeKeysRef.current.add(keyLower); // Tambahkan tombol baru
+        }
+        
         if (!isMoving) setIsMoving(true); //
+
+        // DIUBAH: Menentukan arah hadap untuk 4 arah
         if (keyLower === 'arrowleft' || keyLower === 'a') { //
           setFacingDirection('left');
         } else if (keyLower === 'arrowright' || keyLower === 'd') {
           setFacingDirection('right');
+        } else if (keyLower === 'arrowup' || keyLower === 'w') {
+          setFacingDirection('up');
+        } else if (keyLower === 'arrowdown' || keyLower === 's') {
+          setFacingDirection('down');
         }
       }
       if (interactionKeys.includes(keyLower)) { //
@@ -60,37 +73,31 @@ function useCharacter({
     };
 
     const handleKeyUp = (event) => {
-      // Logika untuk 'E' saat tidur (jika diperlukan untuk bangun) bisa ada di MainPage
-      if (isSleepingForAnimation) return; // Abaikan input key up jika sedang tidur juga, kecuali untuk interaksi bangun
+      if (isSleepingForAnimation) return;
 
-      const moveKeys = ['arrowup', 'w', 'arrowdown', 's', 'arrowleft', 'a', 'arrowright', 'd']; //
-      const keyLower = event.key.toLowerCase(); //
+      const moveKeys = ['arrowup', 'w', 'arrowdown', 's', 'arrowleft', 'a', 'arrowright', 'd'];
+      const keyLower = event.key.toLowerCase();
 
       if (moveKeys.includes(keyLower)) { //
         event.preventDefault();
-        activeKeysRef.current.delete(keyLower); //
-        if (activeKeysRef.current.size === 0) {
-          setIsMoving(false); //
-          setCurrentFrame(0); // Reset ke frame pertama animasi idle saat berhenti
-        } else {
-          // Update facingDirection jika tombol arah yang berlawanan dilepas
-          const keys = activeKeysRef.current; //
-          if (!keys.has('arrowleft') && !keys.has('a') && (keys.has('arrowright') || keys.has('d'))) { //
-            setFacingDirection('right'); //
-          } else if (!keys.has('arrowright') && !keys.has('d') && (keys.has('arrowleft') || keys.has('a'))) { //
-            setFacingDirection('left'); //
-          }
+        // Hanya hapus tombol jika itu adalah tombol yang terakhir ditekan
+        if(keyLower === lastDirectionKey.current) {
+            activeKeysRef.current.delete(keyLower);
+            lastDirectionKey.current = null; // Reset pelacak
+            if (activeKeysRef.current.size === 0) {
+              setIsMoving(false);
+              setCurrentFrame(0);
+            }
         }
       }
     };
     window.addEventListener('keydown', handleKeyDown); //
     window.addEventListener('keyup', handleKeyUp); //
     return () => {
-      window.removeEventListener('keydown', handleKeyDown); //
+      window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp); //
     };
-  }, [isMoving, isSleepingForAnimation]); //
-
+  }, [isMoving, isSleepingForAnimation]);
   // Logika untuk menentukan sprite config yang aktif
   const spriteConfigToUse = (() => {
     if (isSleepingForAnimation) {
@@ -102,17 +109,12 @@ function useCharacter({
     // Jika bergerak (dan tidak tidur) -> DEFAULT (jalan)
     return DEFAULT_SPRITE_CONFIG;
   })();
-
   // Efek untuk mengelola loop animasi (pergantian frame)
   useEffect(() => { //
     let animationInterval;
     const currentConfig = spriteConfigToUse; // Gunakan config yang sudah ditentukan
-
-    // Hanya jalankan interval jika ada frame lebih dari 1 ATAU jika itu adalah animasi tidur/idle yang berulang
-    // Untuk idle, kita ingin animasi berlanjut meskipun hanya 1 frame (akan terlihat statis) jika numFrames = 1.
-    // Jika numFrames > 1 untuk idle, maka akan beranimasi.
     if (currentConfig.numFrames > 0) { // Pastikan ada frame untuk dianimasikan
-        animationInterval = setInterval(() => {
+         animationInterval = setInterval(() => {
             setCurrentFrame(prevFrame => (prevFrame + 1) % currentConfig.numFrames);
         }, currentConfig.animationSpeedMs);
     } else {
@@ -120,8 +122,7 @@ function useCharacter({
     }
 
     return () => clearInterval(animationInterval);
-  }, [isMoving, isSleepingForAnimation, spriteConfigToUse]); // spriteConfigToUse ditambahkan sebagai dependensi
-
+  }, [isMoving, isSleepingForAnimation, spriteConfigToUse]);
   return {
     characterWorldPosition: worldPosition,
     updateWorldPosition,
@@ -132,7 +133,7 @@ function useCharacter({
     interactionKeyRef,
     isSleeping: isSleepingForAnimation, // Expose status tidur aktual untuk logika game
     setSleepingState,                 // Fungsi untuk mengontrol status tidur dari luar
-    spriteConfigToUse,                // Expose sprite config yang sedang aktif
+    spriteConfigToUse,                // Expose sprite 
   };
 }
 

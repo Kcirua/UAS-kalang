@@ -11,6 +11,8 @@ import PlayerStats from '../mainPage/Playerstats';
 import StatusBarGrid from '../mainPage/StatusBarGrid';
 import ActionPanel from '../mainPage/ActionPanel';
 import MovementControls from '../mainPage/MovementControls';
+import InventoryPanel from '../mainPage/InventoryPanel';
+import { ITEM_TYPES } from '../game/collisionData';
 import playerCharacterSprite from '../game/assets/blue_mushroom_sheet_upscaled.png';
 
 const GAME_SPEED = 5;
@@ -22,6 +24,9 @@ const MAKAN_DECREMENT = 2;
 const TIDUR_DECREMENT = 1;
 const KESENANGAN_DECREMENT = 3;
 const KEBERSIHAN_DECREMENT = 1;
+// Konstanta untuk item makanan
+const FOOD_RECOVERY = 5; // Jumlah status makan yang dipulihkan
+const MAX_ITEM_STACK = 64; // Jumlah maksimum item per slot
 
 const mapDetails = {
   world: {
@@ -51,6 +56,7 @@ const DEFAULT_STATS = {
   kebersihan: 70,
   money: 50,
 };
+
 function MainPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -63,6 +69,7 @@ function MainPage() {
   const [availableInteractionType, setAvailableInteractionType] = useState(0);
   const [isCharacterSleeping, setIsCharacterSleeping] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [inventory, setInventory] = useState([]);
 
   const gameTickIntervalRef = useRef(null);
 
@@ -77,8 +84,10 @@ function MainPage() {
     setCharacterSpawnPosition(mapDetails.world.initialPlayerPos);
     const nameFromLobby = location.state?.playerName || 'Player';
     setPlayerName(nameFromLobby);
-    console.log(`Player name set to: ${nameFromLobby}`);
     
+    // Reset inventaris saat inisialisasi
+    setInventory([]);
+
     setIsInitialized(true);
     console.log("Initialization complete.");
 
@@ -95,23 +104,18 @@ function MainPage() {
   // Efek untuk interval game tick (TIMER UTAMA)
   useEffect(() => {
     if (!isInitialized) {
-      // Jika belum terinisialisasi, pastikan tidak ada interval yang berjalan
       if (gameTickIntervalRef.current) {
         clearInterval(gameTickIntervalRef.current);
         gameTickIntervalRef.current = null;
       }
       return;
     }
-
-    // Hanya memulai interval jika belum ada
     if (!gameTickIntervalRef.current) {
-        console.log("Game tick interval starting.");
+       console.log("Game tick interval starting.");
         gameTickIntervalRef.current = setInterval(() => {
           setGameTime(prevTime => prevTime + 1);
         }, 1000 / GAME_SPEED);
     }
-    
-    // Fungsi cleanup tidak lagi diperlukan di sini untuk menjaga interval tetap berjalan
   }, [isInitialized]);
 
   // Efek untuk update hari dan pengurangan stats berdasarkan gameTime
@@ -123,7 +127,7 @@ function MainPage() {
             setDay(prevDay => prevDay + 1);
         }
         if (gameTime % STAT_DECREASE_INTERVAL_SECONDS === 0 && !isCharacterSleeping) {
-            setStats(prevStats => ({
+           setStats(prevStats => ({
             ...prevStats,
             makan: Math.max(0, prevStats.makan - MAKAN_DECREMENT),
             tidur: Math.max(0, prevStats.tidur - TIDUR_DECREMENT),
@@ -139,11 +143,6 @@ function MainPage() {
     if (!isInitialized) return;
     if (playerName && (stats.makan <= 0 || stats.tidur <= 0 || stats.kesenangan <= 0 || stats.kebersihan <= 0)) {
       console.log("Game Over condition met.");
-      // DIHAPUS: clearInterval tidak lagi dipanggil di sini agar waktu tetap berjalan di latar belakang (meskipun tidak terlihat).
-      // if (gameTickIntervalRef.current) {
-      //   clearInterval(gameTickIntervalRef.current);
-      //   gameTickIntervalRef.current = null;
-      // }
       navigate('/gameover');
     }
   }, [stats, playerName, navigate, isInitialized]);
@@ -156,13 +155,6 @@ function MainPage() {
     }
     console.log(`Map transition request to: ${targetKey}`);
     
-    // DIHAPUS: Interval tidak lagi dihentikan saat transisi.
-    // if (gameTickIntervalRef.current) {
-    //   clearInterval(gameTickIntervalRef.current);
-    //   gameTickIntervalRef.current = null;
-    //   console.log("Main game interval stopped for transition.");
-    // }
-
     if (targetKey === 'minigame1_trigger') {
       console.log("Navigating to minigame. Game state will NOT be saved.");
       navigate('/minigame1');
@@ -180,9 +172,71 @@ function MainPage() {
       setIsCharacterSleeping(false);
     } else {
       console.error("Requested map key or trigger does not exist:", targetKey);
-      // Logika untuk memulai kembali interval tidak lagi diperlukan karena tidak pernah dihentikan.
     }
   }, [currentMapKey, navigate, isInitialized]);
+
+  // Handler untuk mengambil item dengan batas tumpukan
+  const handleItemPickup = useCallback((itemType) => {
+    if (!isInitialized) return;
+    const itemInfo = ITEM_TYPES[itemType];
+    if (!itemInfo) return;
+
+    console.log(`Picking up item: ${itemInfo.name}`);
+    setInventory(prevInventory => {
+      const newInventory = [...prevInventory];
+      const existingItemIndex = newInventory.findIndex(item => item.id === itemInfo.id);
+
+      if (existingItemIndex > -1) {
+        if (newInventory[existingItemIndex].quantity < MAX_ITEM_STACK) {
+          newInventory[existingItemIndex].quantity += 1;
+        } else {
+          console.log("Tumpukan item sudah penuh!");
+        }
+      } else {
+        if (newInventory.length < 4) { // Batasi 5 slot inventaris
+          newInventory.push({ ...itemInfo, quantity: 1 });
+        } else {
+          console.log("Inventaris penuh!");
+        }
+      }
+      return newInventory;
+    });
+  }, [isInitialized]);
+
+  // Handler baru untuk menggunakan item dari inventaris
+  const handleUseItem = useCallback((slotIndex) => {
+    if (!isInitialized) return;
+
+    const newInventory = [...inventory];
+    const item = newInventory[slotIndex];
+
+    if (!item) {
+      console.log("Slot ini kosong.");
+      return;
+    }
+
+    if (item.id === 'food1') {
+      console.log(`Menggunakan ${item.name}`);
+      
+      // Pulihkan status makan
+      setStats(prevStats => ({
+        ...prevStats,
+        makan: Math.min(100, prevStats.makan + FOOD_RECOVERY),
+      }));
+
+      // Kurangi jumlah item
+      item.quantity -= 1;
+
+      // Jika item habis, hapus dari inventaris
+      if (item.quantity <= 0) {
+        newInventory.splice(slotIndex, 1);
+      }
+      
+      setInventory(newInventory);
+    } else {
+      console.log(`Item ${item.name} tidak bisa digunakan saat ini.`);
+    }
+  }, [inventory, isInitialized]);
 
   // Handler Aksi Pemain
   const handleMakan = () => {
@@ -215,22 +269,9 @@ function MainPage() {
       if (!isInitialized) return;
       setStats(prevStats => ({ ...prevStats, kebersihan: Math.min(prevStats.kebersihan + 40, 100) }));
   };
-  
-  // Placeholder untuk kontrol UI gerakan
-  const handleMoveUp = () => console.log("UI Gerak Atas diklik");
-  const handleMoveDown = () => console.log("UI Gerak Bawah diklik");
-  const handleMoveLeft = () => console.log("UI Gerak Kiri diklik");
-  const handleMoveRight = () => console.log("UI Gerak Kanan diklik");
-
-  // Handler kembali ke lobi
   const handleBackToLobby = () => {
     if (!isInitialized) return;
     console.log("Kembali ke Lobby. Game state will NOT be saved.");
-    // DIHAPUS: Interval tidak dihentikan saat kembali ke lobi.
-    // if (gameTickIntervalRef.current) {
-    //   clearInterval(gameTickIntervalRef.current);
-    //   gameTickIntervalRef.current = null;
-    // }
     navigate('/lobby');
   };
 
@@ -245,23 +286,13 @@ function MainPage() {
   // Handler untuk tidur di kasur
   const handleSleepInBed = useCallback(() => {
     if (!isInitialized || isCharacterSleeping || availableInteractionType !== 99) return;
-
     console.log("Memulai tidur di kasur...");
     setIsCharacterSleeping(true);
     setAvailableInteractionType(0);
-    
-    // DIHAPUS: Interval tidak dihentikan saat tidur.
-    // if (gameTickIntervalRef.current) {
-    //   clearInterval(gameTickIntervalRef.current);
-    //   gameTickIntervalRef.current = null;
-    //   console.log("Main game interval stopped for sleeping.");
-    // }
-
     setTimeout(() => {
       console.log("Bangun tidur...");
       const sleepDurationHours = 8;
       const sleepTimeAdvance = sleepDurationHours * SECONDS_PER_HOUR;
-      
       setGameTime(prevTime => prevTime + sleepTimeAdvance);
       setStats(prevStats => ({
         ...prevStats,
@@ -269,8 +300,6 @@ function MainPage() {
         makan: Math.max(0, prevStats.makan - 10),
       }));
       setIsCharacterSleeping(false);
-
-      // Logika untuk memulai kembali interval tidak diperlukan
     }, 3000);
   }, [isCharacterSleeping, availableInteractionType, isInitialized]);
 
@@ -290,7 +319,7 @@ function MainPage() {
           <div className="row game-panel">
             <div className="col-9">
               <PlayerStats playerName={playerName} day={day} gameTime={gameTime} money={stats.money} />
-                <StatusBarGrid stats={stats} />
+              <StatusBarGrid stats={stats} />
               <div className="ruangmainnya bg-white p-4 rounded shadow">
                 <GameCanvas
                   mapImageSrc={mapDetails[currentMapKey].imageSrc}
@@ -301,6 +330,7 @@ function MainPage() {
                   onInteractionAvailable={handleInteractionAvailableFromCanvas}
                   isCharacterCurrentlySleeping={isCharacterSleeping}
                   onBedInteraction={handleSleepInBed}
+                  onItemPickup={handleItemPickup}
                 />
               </div>
             </div>
@@ -322,13 +352,11 @@ function MainPage() {
                 onExitCave={() => handleMapTransitionRequest('world')}
                 onSleepInBed={handleSleepInBed}
               />
+              
+              <InventoryPanel inventory={inventory} onUseItem={handleUseItem} />
+
               <div className="separator my-4 bg-white" style={{ height: '2px', opacity: '0.5' }}></div>
-              <MovementControls 
-                onUp={handleMoveUp} 
-                onDown={handleMoveDown} 
-                onLeft={handleMoveLeft} 
-                onRight={handleMoveRight} 
-              />
+              <MovementControls />
               <button onClick={handleBackToLobby} className="btn btn-info w-100 mt-4">Kembali ke Lobby</button>
             </div>
           </div>

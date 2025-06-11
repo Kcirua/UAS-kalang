@@ -20,7 +20,7 @@ export const CHARACTER_STEP_SIZE = 1; //
 // Konfigurasi default untuk sprite karakter (blue_mushroom_walk.png)
 // Asumsi: Baris 0 untuk jalan/hadap kanan, Baris 1 untuk jalan/hadap kiri
 export const DEFAULT_SPRITE_CONFIG = {
-  numFrames: 7,        // Jumlah frame animasi jalan
+  numFrames: 8,        // Jumlah frame animasi jalan
   frameWidth: 64,      // Lebar satu frame di spritesheet
   frameHeight: 64,     // Tinggi satu frame di spritesheet
   animationSpeedMs: 100, // Kecepatan animasi dalam milidetik per frame
@@ -29,7 +29,7 @@ export const DEFAULT_SPRITE_CONFIG = {
 
 // Konfigurasi untuk sprite tidur
 export const SLEEP_SPRITE_CONFIG = {
-  numFrames: 5, // Jumlah frame animasi tidur
+  numFrames: 6, // Jumlah frame animasi tidur
   frameWidth: 64, // Lebar frame
   frameHeight: 64, // Tinggi frame
   animationSpeedMs: 500, // Kecepatan animasi tidur
@@ -39,11 +39,11 @@ export const SLEEP_SPRITE_CONFIG = {
 // BARU: Konfigurasi untuk sprite idle
 // Sesuaikan rowIndex dan numFrames dengan aset idle Anda
 export const IDLE_SPRITE_CONFIG = {
-  numFrames: 4, // Contoh: 4 frame untuk animasi idle
+  numFrames: 6, // Contoh: 4 frame untuk animasi idle
   frameWidth: 64,
   frameHeight: 64,
   animationSpeedMs: 300, // Kecepatan animasi idle (mungkin sedikit lebih lambat dari jalan)
-  rowIndex: 1, // Contoh: Baris ke-2 (0-indexed) pada sprite sheet untuk animasi idle
+  rowIndex: 3, // Contoh: Baris ke-2 (0-indexed) pada sprite sheet untuk animasi idle
 };
 
 export const MINIMAP_WIDTH = 150; //
