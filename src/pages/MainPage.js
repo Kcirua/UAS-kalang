@@ -25,9 +25,8 @@ const MAKAN_DECREMENT = 2;
 const TIDUR_DECREMENT = 1;
 const KESENANGAN_DECREMENT = 3;
 const KEBERSIHAN_DECREMENT = 1;
-// Konstanta untuk item makanan
-const FOOD_RECOVERY = 5; // Jumlah status makan yang dipulihkan
-const MAX_ITEM_STACK = 64; // Jumlah maksimum item per slot
+const FOOD_RECOVERY = 5;
+const MAX_ITEM_STACK = 64;
 
 const mapDetails = {
   world: {
@@ -42,7 +41,7 @@ const mapDetails = {
     imageSrc: homeMapBackground,
     initialPlayerPos: { x: 90, y: 490 },
   },
-    swamp: {
+   swamp: {
     imageSrc: swampMapBackground,
     initialPlayerPos: { x: 955, y: 550 },
   },
@@ -62,7 +61,6 @@ const DEFAULT_STATS = {
   kebersihan: 70,
   money: 50,
 };
-
 function MainPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -75,12 +73,11 @@ function MainPage() {
   const [availableInteractionType, setAvailableInteractionType] = useState(0);
   const [isCharacterSleeping, setIsCharacterSleeping] = useState(false);
   const [isCharacterEating, setIsCharacterEating] = useState(false);
+  const [isCharacterBathing, setIsCharacterBathing] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [inventory, setInventory] = useState([]);
-
   const gameTickIntervalRef = useRef(null);
 
-  // Efek untuk inisialisasi state utama saat komponen pertama kali dimuat
   useEffect(() => {
     console.log("MainPage mounted. Initializing state to default values.");
     
@@ -92,13 +89,11 @@ function MainPage() {
     const nameFromLobby = location.state?.playerName || 'Player';
     setPlayerName(nameFromLobby);
     
-    // Reset inventaris saat inisialisasi
     setInventory([]);
 
     setIsInitialized(true);
     console.log("Initialization complete.");
 
-    // Fungsi cleanup untuk unmount total
     return () => {
         console.log("MainPage is UNMOUNTING. Interval will be cleared.");
         if (gameTickIntervalRef.current) {
@@ -106,9 +101,8 @@ function MainPage() {
             gameTickIntervalRef.current = null;
         }
     };
-  }, []); // Hanya berjalan sekali saat mount
+  }, []);
 
-  // Efek untuk interval game tick (TIMER UTAMA)
   useEffect(() => {
     if (!isInitialized) {
       if (gameTickIntervalRef.current) {
@@ -120,12 +114,11 @@ function MainPage() {
     if (!gameTickIntervalRef.current) {
        console.log("Game tick interval starting.");
         gameTickIntervalRef.current = setInterval(() => {
-          setGameTime(prevTime => prevTime + 1);
+           setGameTime(prevTime => prevTime + 1);
         }, 1000 / GAME_SPEED);
     }
   }, [isInitialized]);
 
-  // Efek untuk update hari dan pengurangan stats berdasarkan gameTime
   useEffect(() => {
     if (!isInitialized || (gameTime === 0 && day === 1)) return;
 
@@ -134,7 +127,7 @@ function MainPage() {
             setDay(prevDay => prevDay + 1);
         }
         if (gameTime % STAT_DECREASE_INTERVAL_SECONDS === 0 && !isCharacterSleeping) {
-           setStats(prevStats => ({
+            setStats(prevStats => ({
             ...prevStats,
             makan: Math.max(0, prevStats.makan - MAKAN_DECREMENT),
             tidur: Math.max(0, prevStats.tidur - TIDUR_DECREMENT),
@@ -145,7 +138,6 @@ function MainPage() {
     }
   }, [gameTime, isCharacterSleeping, isInitialized, day]);
 
-  // Efek untuk game over
   useEffect(() => {
     if (!isInitialized) return;
     if (playerName && (stats.makan <= 0 || stats.tidur <= 0 || stats.kesenangan <= 0 || stats.kebersihan <= 0)) {
@@ -153,8 +145,7 @@ function MainPage() {
       navigate('/gameover');
     }
   }, [stats, playerName, navigate, isInitialized]);
-  
-  // Handler untuk transisi peta atau navigasi ke minigame
+
   const handleMapTransitionRequest = useCallback((targetKey, charPos = null) => {
     if (!isInitialized) {
       console.warn("Attempted map transition before initialization.");
@@ -165,7 +156,7 @@ function MainPage() {
     if (targetKey === 'minigame1_trigger') {
       console.log("Navigating to minigame. Game state will NOT be saved.");
       navigate('/minigame1');
-    } else if (targetKey === 'minigame2_trigger') { // NEW: Handle trigger for Minigame 2
+    } else if (targetKey === 'minigame2_trigger') {
       console.log("Navigating to minigame 2. Game state will NOT be saved.");
       navigate('/minigame2');
     } else if (mapDetails[targetKey]) {
@@ -185,7 +176,6 @@ function MainPage() {
     }
   }, [currentMapKey, navigate, isInitialized]);
 
-  // Handler untuk mengambil item dengan batas tumpukan
   const handleItemPickup = useCallback((itemType) => {
     if (!isInitialized) return;
     const itemInfo = ITEM_TYPES[itemType];
@@ -198,12 +188,12 @@ function MainPage() {
 
       if (existingItemIndex > -1) {
         if (newInventory[existingItemIndex].quantity < MAX_ITEM_STACK) {
-          newInventory[existingItemIndex].quantity += 1;
+           newInventory[existingItemIndex].quantity += 1;
         } else {
           console.log("Tumpukan item sudah penuh!");
         }
       } else {
-        if (newInventory.length < 4) { // Batasi 5 slot inventaris
+        if (newInventory.length < 4) {
           newInventory.push({ ...itemInfo, quantity: 1 });
         } else {
           console.log("Inventaris penuh!");
@@ -213,7 +203,6 @@ function MainPage() {
     });
   }, [isInitialized]);
 
-  // Handler baru untuk menggunakan item dari inventaris
   const handleUseItem = useCallback((slotIndex) => {
     if (!isInitialized) return;
 
@@ -228,16 +217,13 @@ function MainPage() {
     if (item.id === 'food1') {
       console.log(`Menggunakan ${item.name}`);
       
-      // Pulihkan status makan
       setStats(prevStats => ({
         ...prevStats,
         makan: Math.min(100, prevStats.makan + FOOD_RECOVERY),
       }));
 
-      // Kurangi jumlah item
       item.quantity -= 1;
 
-      // Jika item habis, hapus dari inventaris
       if (item.quantity <= 0) {
         newInventory.splice(slotIndex, 1);
       }
@@ -248,7 +234,6 @@ function MainPage() {
     }
   }, [inventory, isInitialized]);
 
-  // Handler Aksi Pemain
   const handleMakan = () => {
     if (!isInitialized) return;
     if (stats.money >= 5) {
@@ -261,6 +246,7 @@ function MainPage() {
         console.log("Uang tidak cukup untuk makan!");
     }
   };
+
   const handleBermain = () => {
     if (!isInitialized) return;
     setStats(prevStats => ({ 
@@ -270,22 +256,27 @@ function MainPage() {
         tidur: Math.max(0, prevStats.tidur - 5) 
     }));
   };
+
   const handleQuickNap = () => {
     if (!isInitialized) return;
     console.log("Melakukan tidur singkat...");
     setStats(prevStats => ({ ...prevStats, tidur: Math.min(prevStats.tidur + 30, 100), kesenangan: Math.max(0, prevStats.kesenangan - 5) }));
   };
+
+  // HANDLER UNTUK TOMBOL AKSI "BERSIH" (NON-KONTEKSTUAL)
+  // Fungsi ini dipanggil oleh tombol "Bersih" umum di ActionPanel.
   const handleBersih = () => {
       if (!isInitialized) return;
+      // Menambah status kebersihan sebanyak 40 poin, maksimal 100.
       setStats(prevStats => ({ ...prevStats, kebersihan: Math.min(prevStats.kebersihan + 40, 100) }));
   };
+
   const handleBackToLobby = () => {
     if (!isInitialized) return;
     console.log("Kembali ke Lobby. Game state will NOT be saved.");
     navigate('/lobby');
   };
 
-  // Callback dari GameCanvas tentang interaksi yang tersedia
   const handleInteractionAvailableFromCanvas = useCallback((type) => {
     if (!isInitialized) return;
     if (!isCharacterSleeping && !isCharacterEating) {
@@ -293,7 +284,6 @@ function MainPage() {
     }
   },[isCharacterSleeping, isCharacterEating, isInitialized]);
 
-  // Handler untuk tidur di kasur
   const handleSleepInBed = useCallback(() => {
     if (!isInitialized || isCharacterSleeping || availableInteractionType !== 99) return;
     console.log("Memulai tidur di kasur...");
@@ -313,25 +303,44 @@ function MainPage() {
     }, 5000);
   }, [isCharacterSleeping, availableInteractionType, isInitialized]);
 
-   const handleMakanInteraction = useCallback(() => {
+  const handleMakanInteraction = useCallback(() => {
     if (!isInitialized || isCharacterEating || availableInteractionType !== 98) return;
     
     console.log("Starting to eat at the table...");
     setIsCharacterEating(true);
     setAvailableInteractionType(0);
 
-    // Animate for 4 seconds and then restore stats
     setTimeout(() => {
       console.log("Finished eating.");
       setStats(prevStats => ({
         ...prevStats,
-        makan: Math.min(100, prevStats.makan + 30), // Restore 30 food points
+        makan: Math.min(100, prevStats.makan + 30),
       }));
       setIsCharacterEating(false);
-    }, 4000); // 4-second animation duration
+    }, 4000);
   }, [isCharacterEating, availableInteractionType, isInitialized]);
 
-  // Tampilan loading jika belum terinisialisasi
+  // HANDLER UNTUK INTERAKSI MANDI (KONTEKSTUAL DI KAMAR MANDI)
+  // Fungsi ini dipanggil saat berinteraksi dengan petak 97 di dalam game.
+  const handleBersihInteraction = useCallback(() => {
+    if (!isInitialized || isCharacterBathing || availableInteractionType !== 97) return;
+    
+    console.log("Memulai mandi...");
+    setIsCharacterBathing(true);
+    setAvailableInteractionType(0);
+
+    // Setelah animasi 4 detik, status kebersihan akan pulih sepenuhnya.
+    setTimeout(() => {
+      console.log("Selesai mandi.");
+      setStats(prevStats => ({
+        ...prevStats,
+        // Mengatur status kebersihan menjadi 100.
+        kebersihan: 100,
+      }));
+      setIsCharacterBathing(false);
+    }, 4000);
+  }, [isCharacterBathing, availableInteractionType, isInitialized]);
+
   if (!isInitialized || !mapDetails[currentMapKey]?.imageSrc) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#333', color: 'white', fontSize: '20px' }}>
@@ -361,6 +370,8 @@ function MainPage() {
                   onItemPickup={handleItemPickup}
                   isCharacterCurrentlyEating={isCharacterEating}
                   onMakanInteraction={handleMakanInteraction}
+                  isCharacterCurrentlyBathing={isCharacterBathing}
+                  onBersihInteraction={handleBersihInteraction}
                 />
               </div>
             </div>
@@ -384,6 +395,7 @@ function MainPage() {
                 onExitBathroom={() => handleMapTransitionRequest('world')}
                 onSleepInBed={handleSleepInBed}
                 onMakanAtTable={handleMakanInteraction}
+                onBathInBathroom={handleBersihInteraction}
               />
               
               <InventoryPanel inventory={inventory} onUseItem={handleUseItem} />

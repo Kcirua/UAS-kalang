@@ -64,11 +64,11 @@ const homeCollisions = [
 const bathroomCollisions = [
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],          
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   [1, 0, 0, 0, 5, 5, 0, 0, 0, 0, 1], // Angka 5 sebagai pintu keluar
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], // Angka 5 sebagai pintu keluar
-  [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], // Angka 5 sebagai pintu keluar
+  [1, 0, 0, 0, 0, 0, 0, 97, 97, 97, 1], // Angka 5 sebagai pintu keluar
   [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // Angka 5 sebagai pintu keluar
 ];
 

@@ -22,13 +22,14 @@ function GameCanvas({
   onBedInteraction,
   isCharacterCurrentlyEating,
   onMakanInteraction,
+  isCharacterCurrentlyBathing,
+  onBersihInteraction,
   onItemPickup,
 }) {
   const canvasRef = useRef(null);
   const {
     mapImage, characterImage, mapDimensions, isCharacterImageLoaded, assetsReady
   } = useGameAssets(mapImageSrc, characterImageSrc);
-
   const characterHook = useCharacter({
     initialPosition: initialCharacterPosition,
   });
@@ -38,13 +39,12 @@ function GameCanvas({
     isSleeping,
     setSleepingState,
     setEatingState,
+    setBathingState,
     spriteConfigToUse,
     isMoving,
   } = characterHook;
-
   const [canInteractWithEKey, setCanInteractWithEKey] = useState(false);
   const [interactionTileTypeForEKey, setInteractionTileTypeForEKey] = useState(0);
-
   const { cameraPosition } = useCamera({
     characterWorldPosition, mapDimensions, viewportWidth: VIEWPORT_WIDTH, viewportHeight: VIEWPORT_HEIGHT,
     characterViewportOffsetX: CHARACTER_VIEWPORT_OFFSET_X || VIEWPORT_WIDTH / 2,
@@ -58,39 +58,44 @@ function GameCanvas({
       setSleepingState(isCharacterCurrentlySleeping);
     }
   }, [isCharacterCurrentlySleeping, setSleepingState]);
-
   useEffect(() => {
     if (setEatingState) {
       setEatingState(isCharacterCurrentlyEating);
     }
   }, [isCharacterCurrentlyEating, setEatingState]);
 
+  useEffect(() => {
+    if (setBathingState) {
+      setBathingState(isCharacterCurrentlyBathing);
+    }
+  }, [isCharacterCurrentlyBathing, setBathingState]);
+
   const handleEKeyInteraction = useCallback(() => {
     if (isSleeping) return;
 
-    if (interactionTileTypeForEKey === 2) { // Pintu Rumah / Gua
+    if (interactionTileTypeForEKey === 2) {
       if (currentMapKey === 'world') {
         onMapTransitionRequest('house');
       } else if (currentMapKey === 'house' || currentMapKey === 'caves') {
         onMapTransitionRequest('world');
       }
-    } else if (interactionTileTypeForEKey === 3) { // Pintu Rawa
+    } else if (interactionTileTypeForEKey === 3) {
       if (currentMapKey === 'world') {
         onMapTransitionRequest('swamp');
       } else if (currentMapKey === 'swamp') {
         onMapTransitionRequest('world');
       }
-    } else if (interactionTileTypeForEKey === 4) { // Pintu Gua dari Dunia
+    } else if (interactionTileTypeForEKey === 4) {
       if (currentMapKey === 'world') {
         onMapTransitionRequest('caves');
       }
-    } else if (interactionTileTypeForEKey === 5) { // BARU: Logika Pintu Kamar Mandi
+    } else if (interactionTileTypeForEKey === 5) {
       if (currentMapKey === 'house') {
-          onMapTransitionRequest('bathroom');
+        onMapTransitionRequest('bathroom');
       } else if (currentMapKey === 'bathroom') {
-          onMapTransitionRequest('house');        
+          onMapTransitionRequest('house');
       }
-    } else if (interactionTileTypeForEKey === 99) { // Tempat Tidur
+    } else if (interactionTileTypeForEKey === 99) {
       if (onBedInteraction) {
         onBedInteraction();
       }
@@ -98,10 +103,14 @@ function GameCanvas({
       if (onMakanInteraction) {
         onMakanInteraction();
       }
-    } else if (interactionTileTypeForEKey === 50) { // Tile Minigame
+    } else if (interactionTileTypeForEKey === 97) {
+      if (onBersihInteraction) {
+        onBersihInteraction();
+      }
+    } else if (interactionTileTypeForEKey === 50) {
       console.log("Interacting with Minigame Tile (50). Current position:", characterWorldPosition);
       onMapTransitionRequest('minigame1_trigger', characterWorldPosition);
-    } else if (interactionTileTypeForEKey === 51) { // NEW: Tile Minigame 2
+    } else if (interactionTileTypeForEKey === 51) {
       console.log("Interacting with Minigame Tile (51). Current position:", characterWorldPosition);
       onMapTransitionRequest('minigame2_trigger', characterWorldPosition);
     } else if (ITEM_TYPES[interactionTileTypeForEKey]) {
@@ -109,7 +118,7 @@ function GameCanvas({
             onItemPickup(interactionTileTypeForEKey);
         }
     }
-  }, [currentMapKey, onMapTransitionRequest, interactionTileTypeForEKey, onBedInteraction, onMakanInteraction, isSleeping, characterWorldPosition, onItemPickup]);
+  }, [currentMapKey, onMapTransitionRequest, interactionTileTypeForEKey, onBedInteraction, onMakanInteraction, onBersihInteraction, isSleeping, characterWorldPosition, onItemPickup]);
 
   useEffect(() => {
     if (!assetsReady || !mapDimensions.width || !mapDimensions.height || !activeCollisionMapConfig) {
@@ -119,7 +128,7 @@ function GameCanvas({
       return;
     }
     let currentDetectedTileType = 0;
-    if (!isSleeping && !isCharacterCurrentlyEating) { // Prevent interaction check while eating
+    if (!isSleeping && !isCharacterCurrentlyEating && !isCharacterCurrentlyBathing) {
         currentDetectedTileType = getOverlappingTileType(
             characterWorldPosition.x, characterWorldPosition.y,
             CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig
@@ -130,14 +139,14 @@ function GameCanvas({
       onInteractionAvailable(currentDetectedTileType);
     }
 
-    if (!isSleeping && !isCharacterCurrentlyEating && (currentDetectedTileType === 2 || currentDetectedTileType === 3 || currentDetectedTileType === 4 || currentDetectedTileType === 5 || currentDetectedTileType === 99 || currentDetectedTileType === 98 || currentDetectedTileType === 50 || currentDetectedTileType === 51 || ITEM_TYPES[currentDetectedTileType])) {
+    if (!isSleeping && !isCharacterCurrentlyEating && !isCharacterCurrentlyBathing && (currentDetectedTileType === 2 || currentDetectedTileType === 3 || currentDetectedTileType === 4 || currentDetectedTileType === 5 || currentDetectedTileType === 99 || currentDetectedTileType === 98 || currentDetectedTileType === 97 || currentDetectedTileType === 50 || currentDetectedTileType === 51 || ITEM_TYPES[currentDetectedTileType])) {
       setCanInteractWithEKey(true);
       setInteractionTileTypeForEKey(currentDetectedTileType);
     } else {
       setCanInteractWithEKey(false);
-      setInteractionTileTypeForEKey(0); // 
+      setInteractionTileTypeForEKey(0);
     }
-  }, [characterWorldPosition, assetsReady, mapDimensions, activeCollisionMapConfig, onInteractionAvailable, isSleeping, isCharacterCurrentlyEating, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT]);
+  }, [characterWorldPosition, assetsReady, mapDimensions, activeCollisionMapConfig, onInteractionAvailable, isSleeping, isCharacterCurrentlyEating, isCharacterCurrentlyBathing, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -150,13 +159,12 @@ function GameCanvas({
     let animationFrameId;
 
     const drawGame = () => {
-      if (interactionKeyRef.current && canInteractWithEKey && !isSleeping && !isCharacterCurrentlyEating) {
+      if (interactionKeyRef.current && canInteractWithEKey && !isSleeping && !isCharacterCurrentlyEating && !isCharacterCurrentlyBathing) {
         handleEKeyInteraction();
         interactionKeyRef.current = false;
       }
 
-      // MODIFICATION: Added check for isCharacterCurrentlyEating to prevent movement
-      if (!isSleeping && !isCharacterCurrentlyEating) {
+      if (!isSleeping && !isCharacterCurrentlyEating && !isCharacterCurrentlyBathing) {
         const activeKeys = activeKeysRef.current;
         const currentX = characterWorldPosition.x;
         const currentY = characterWorldPosition.y;
@@ -168,24 +176,22 @@ function GameCanvas({
           if (activeKeys.has('arrowdown') || activeKeys.has('s')) attemptedMoveY += CHARACTER_STEP_SIZE;
           if (activeKeys.has('arrowleft') || activeKeys.has('a')) attemptedMoveX -= CHARACTER_STEP_SIZE;
           if (activeKeys.has('arrowright') || activeKeys.has('d')) attemptedMoveX += CHARACTER_STEP_SIZE;
-          
           attemptedMoveX = Math.max(0, Math.min(attemptedMoveX, mapDimensions.width - CHAR_DISPLAY_WIDTH));
           attemptedMoveY = Math.max(0, Math.min(attemptedMoveY, mapDimensions.height - CHAR_DISPLAY_HEIGHT));
         }
 
         let finalTargetX = currentX;
         let finalTargetY = currentY;
-
         if (activeCollisionMapConfig) {
           if (attemptedMoveX !== currentX) {
             const tileTypeX = getOverlappingTileType(attemptedMoveX, currentY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig);
-            if (tileTypeX === 0 || tileTypeX === 2 || tileTypeX === 3 || tileTypeX === 4 || tileTypeX === 5 || tileTypeX === 99 || tileTypeX === 98 || tileTypeX === 50 || tileTypeX === 51 || ITEM_TYPES[tileTypeX]) {
+            if (tileTypeX === 0 || tileTypeX === 2 || tileTypeX === 3 || tileTypeX === 4 || tileTypeX === 5 || tileTypeX === 99 || tileTypeX === 98 || tileTypeX === 97 || tileTypeX === 50 || tileTypeX === 51 || ITEM_TYPES[tileTypeX]) {
               finalTargetX = attemptedMoveX;
             }
           }
           if (attemptedMoveY !== currentY) {
             const tileTypeY = getOverlappingTileType(finalTargetX, attemptedMoveY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig);
-            if (tileTypeY === 0 || tileTypeY === 2 || tileTypeY === 3 || tileTypeY === 4 || tileTypeY === 5 || tileTypeY === 99 || tileTypeY === 98 || tileTypeY === 50 || tileTypeY === 51 || ITEM_TYPES[tileTypeY]) {
+            if (tileTypeY === 0 || tileTypeY === 2 || tileTypeY === 3 || tileTypeY === 4 || tileTypeY === 5 || tileTypeY === 99 || tileTypeY === 98 || tileTypeY === 97 || tileTypeY === 50 || tileTypeY === 51 || ITEM_TYPES[tileTypeY]) {
               finalTargetY = attemptedMoveY;
             }
           }
@@ -200,7 +206,6 @@ function GameCanvas({
       }
 
       context.clearRect(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
-      
       if (mapImage && mapDimensions.width > 0 && cameraPosition) {
         context.drawImage(mapImage, cameraPosition.x, cameraPosition.y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT, 0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
       }
@@ -213,7 +218,6 @@ function GameCanvas({
         const endCol = Math.min(startCol + Math.ceil(VIEWPORT_WIDTH / tileW) + 1, collisionDataArray[0] ? collisionDataArray[0].length : 0);
         const startRow = Math.floor(cameraPosition.y / tileH);
         const endRow = Math.min(startRow + Math.ceil(VIEWPORT_HEIGHT / tileH) + 1, collisionDataArray.length);
-
         for (let r = Math.max(0, startRow); r < endRow; r++) {
           for (let c = Math.max(0, startCol); c < endCol; c++) {
             const tileValue = collisionDataArray[r] && collisionDataArray[r][c];
@@ -230,12 +234,14 @@ function GameCanvas({
                 context.fillStyle = 'rgba(0, 255, 0, 0.3)';
               } else if (tileValue === 4) { 
                 context.fillStyle = 'rgba(128, 0, 128, 0.3)';
-              } else if (tileValue === 5) { // BARU
+              } else if (tileValue === 5) {
                 context.fillStyle = 'rgba(255, 0, 255, 0.4)';
               } else if (tileValue === 99) {
                 context.fillStyle = 'rgba(255, 105, 180, 0.4)';
               } else if (tileValue === 98) {
                 context.fillStyle = 'rgba(255, 215, 0, 0.4)';
+              } else if (tileValue === 97) {
+                context.fillStyle = 'rgba(0, 191, 255, 0.4)';
               } else if (tileValue === 50) {
                 context.fillStyle = 'rgba(255, 165, 0, 0.4)';
               } else if (tileValue === 51) {
@@ -255,13 +261,10 @@ function GameCanvas({
         
         let animSourceX = currentFrame * spriteConfigToUse.frameWidth;
         let animSourceY;
-
-        // This logic correctly uses the rowIndex from the spriteConfig determined in useCharacter.
-        // When not moving (which includes sleeping and eating), it uses the specified animation row.
-        if (isSleeping || isCharacterCurrentlyEating || !isMoving) {
+        
+        if (isSleeping || isCharacterCurrentlyEating || isCharacterCurrentlyBathing || !isMoving) {
           animSourceY = spriteConfigToUse.rowIndex * spriteConfigToUse.frameHeight;
         } else { 
-          // Walking animation logic
           if (facingDirection === 'down') {
             animSourceY = 4 * spriteConfigToUse.frameHeight;
           } else if (facingDirection === 'left') {
@@ -271,7 +274,6 @@ function GameCanvas({
           } else if (facingDirection === 'up') {
             animSourceY = 7 * spriteConfigToUse.frameHeight;
           } else {
-            // Fallback
             animSourceY = spriteConfigToUse.rowIndex * spriteConfigToUse.frameHeight;
           }
         }
@@ -287,7 +289,6 @@ function GameCanvas({
       
       animationFrameId = requestAnimationFrame(drawGame);
     };
-
     if (assetsReady && activeCollisionMapConfig) {
       drawGame();
     } else {
@@ -308,10 +309,10 @@ function GameCanvas({
     activeCollisionMapConfig,
     isSleeping,
     isCharacterCurrentlyEating,
+    isCharacterCurrentlyBathing,
     spriteConfigToUse,
     isMoving,
   ]);
-
   return (
     <div style={{ position: 'relative', width: `${VIEWPORT_WIDTH}px`, height: `${VIEWPORT_HEIGHT}px` }}>
       <canvas ref={canvasRef} style={{ border: '1px solid black', display: 'block' }} />

@@ -54,6 +54,14 @@ export const MAKAN_SPRITE_CONFIG = {
   rowIndex: 1, // ASSUMPTION: The eating animation is on the 10th row (index 9)
 };
 
+export const BATH_SPRITE_CONFIG = {
+  numFrames: 6, // Asumsi 8 frame untuk animasi mandi
+  frameWidth: 64,
+  frameHeight: 64,
+  animationSpeedMs: 250, // Kecepatan animasi mandi
+  rowIndex: 0, // Asumsi: Animasi mandi ada di baris ke-9 (indeks 8)
+};
+
 export const MINIMAP_WIDTH = 150; //
 export const MINIMAP_HEIGHT = 100; //
 export const MINIMAP_CHARACTER_DOT_SIZE = 5; //

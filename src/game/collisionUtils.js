@@ -30,6 +30,7 @@ export function getOverlappingTileType(worldX, worldY, charWidth, charHeight, cu
   let isOverlappingBathroom = false;
   let isOverlappingBed = false; // 
   let isOverlappingMakan = false;
+  let isOverlappingBathing = false;
   let isOverlappingMinigame1 = false; // 
   let isOverlappingMinigame2 = false;
   let isOverlappingItem = false; // BARU: untuk tile item
@@ -51,6 +52,8 @@ export function getOverlappingTileType(worldX, worldY, charWidth, charHeight, cu
         isOverlappingBed = true; // 
       } else if (tileType === 98) {
         isOverlappingMakan = true;
+      } else if (tileType === 97) { // BARU: Cek untuk petak mandi
+        isOverlappingBathing = true;
       } else if (tileType === 50) { 
         isOverlappingMinigame1 = true; // 
       } else if (tileType === 51) { // NEW: Check for Minigame 2 tile
@@ -80,6 +83,9 @@ export function getOverlappingTileType(worldX, worldY, charWidth, charHeight, cu
   }
   if (isOverlappingMakan) {
     return 98;
+  }
+  if (isOverlappingBathing) { // BARU
+    return 97;
   }
   if (isOverlappingMinigame1) {
     return 50;

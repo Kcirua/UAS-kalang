@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { DEFAULT_SPRITE_CONFIG, SLEEP_SPRITE_CONFIG, IDLE_SPRITE_CONFIG, MAKAN_SPRITE_CONFIG } from './gameConstants';
+import { DEFAULT_SPRITE_CONFIG, SLEEP_SPRITE_CONFIG, IDLE_SPRITE_CONFIG, MAKAN_SPRITE_CONFIG, BATH_SPRITE_CONFIG } from './gameConstants';
 
 function useCharacter({
   initialPosition,
@@ -11,7 +11,8 @@ function useCharacter({
   const activeKeysRef = useRef(new Set());
   const interactionKeyRef = useRef(false);
   const [isSleepingForAnimation, setIsSleepingForAnimation] = useState(false);
-  const [isEatingForAnimation, setIsEatingForAnimation] = useState(false); // MODIFICATION: Added eating state
+  const [isEatingForAnimation, setIsEatingForAnimation] = useState(false);
+  const [isBathingForAnimation, setIsBathingForAnimation] = useState(false);
   const lastDirectionKey = useRef(null);
 
   const updateWorldPosition = useCallback((newPosition) => {
@@ -21,7 +22,8 @@ function useCharacter({
   useEffect(() => {
     setWorldPosition(initialPosition);
     setIsSleepingForAnimation(false);
-    setIsEatingForAnimation(false); // MODIFICATION: Reset eating state on position change
+    setIsEatingForAnimation(false);
+    setIsBathingForAnimation(false);
     setCurrentFrame(0);
   }, [initialPosition]);
 
@@ -36,23 +38,31 @@ function useCharacter({
     }
   }, []);
 
-  // MODIFICATION: Added function to control eating state
   const setEatingState = useCallback((shouldEat) => {
     setIsEatingForAnimation(shouldEat);
     if (shouldEat) {
       setIsMoving(false);
       activeKeysRef.current.clear();
-      setCurrentFrame(0); // Start eating animation from frame 0
+      setCurrentFrame(0);
     } else {
-      setCurrentFrame(0); // Reset frame when done eating
+      setCurrentFrame(0);
     }
   }, []);
 
-  // Event listener for keyboard input
+  const setBathingState = useCallback((shouldBathe) => {
+    setIsBathingForAnimation(shouldBathe);
+    if (shouldBathe) {
+      setIsMoving(false);
+      activeKeysRef.current.clear();
+      setCurrentFrame(0);
+    } else {
+      setCurrentFrame(0);
+    }
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (event) => {
-      // MODIFICATION: Block input if sleeping or eating
-      if (isSleepingForAnimation || isEatingForAnimation) return;
+      if (isSleepingForAnimation || isEatingForAnimation || isBathingForAnimation) return;
 
       const moveKeys = ['arrowup', 'w', 'arrowdown', 's', 'arrowleft', 'a', 'arrowright', 'd'];
       const interactionKeys = ['e', 'enter'];
@@ -83,12 +93,9 @@ function useCharacter({
     };
 
     const handleKeyUp = (event) => {
-      // MODIFICATION: Block input if sleeping or eating
-      if (isSleepingForAnimation || isEatingForAnimation) return;
-
+      if (isSleepingForAnimation || isEatingForAnimation || isBathingForAnimation) return;
       const moveKeys = ['arrowup', 'w', 'arrowdown', 's', 'arrowleft', 'a', 'arrowright', 'd'];
       const keyLower = event.key.toLowerCase();
-
       if (moveKeys.includes(keyLower)) {
         event.preventDefault();
         if(keyLower === lastDirectionKey.current) {
@@ -101,23 +108,23 @@ function useCharacter({
         }
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isMoving, isSleepingForAnimation, isEatingForAnimation]); // MODIFICATION: Added eating state to dependencies
+  }, [isMoving, isSleepingForAnimation, isEatingForAnimation, isBathingForAnimation]);
 
-  // Logic to determine the active sprite config
   const spriteConfigToUse = (() => {
     if (isSleepingForAnimation) {
       return SLEEP_SPRITE_CONFIG;
     }
-    // MODIFICATION: Return eating sprite if eating
     if (isEatingForAnimation) {
       return MAKAN_SPRITE_CONFIG;
+    }
+    if (isBathingForAnimation) {
+      return BATH_SPRITE_CONFIG;
     }
     if (!isMoving) {
       return IDLE_SPRITE_CONFIG;
@@ -125,7 +132,6 @@ function useCharacter({
     return DEFAULT_SPRITE_CONFIG;
   })();
 
-  // Effect to manage the animation loop
   useEffect(() => {
     let animationInterval;
     const currentConfig = spriteConfigToUse;
@@ -138,7 +144,7 @@ function useCharacter({
     }
 
     return () => clearInterval(animationInterval);
-  }, [isMoving, isSleepingForAnimation, isEatingForAnimation, spriteConfigToUse]); // MODIFICATION: Added eating state to dependencies
+  }, [isMoving, isSleepingForAnimation, isEatingForAnimation, isBathingForAnimation, spriteConfigToUse]);
 
   return {
     characterWorldPosition: worldPosition,
@@ -150,8 +156,10 @@ function useCharacter({
     interactionKeyRef,
     isSleeping: isSleepingForAnimation,
     setSleepingState,
-    isEating: isEatingForAnimation, // MODIFICATION: Expose eating state
-    setEatingState,               // MODIFICATION: Expose eating state setter
+    isEating: isEatingForAnimation,
+    setEatingState,
+    isBathing: isBathingForAnimation,
+    setBathingState,
     spriteConfigToUse,
   };
 }
