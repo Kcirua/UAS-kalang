@@ -84,6 +84,12 @@ function GameCanvas({
       if (currentMapKey === 'world') {
         onMapTransitionRequest('caves');
       }
+    } else if (interactionTileTypeForEKey === 5) { // BARU: Logika Pintu Kamar Mandi
+      if (currentMapKey === 'house') {
+          onMapTransitionRequest('bathroom');
+      } else if (currentMapKey === 'bathroom') {
+          onMapTransitionRequest('house');        
+      }
     } else if (interactionTileTypeForEKey === 99) { // Tempat Tidur
       if (onBedInteraction) {
         onBedInteraction();
@@ -124,12 +130,12 @@ function GameCanvas({
       onInteractionAvailable(currentDetectedTileType);
     }
 
-    if (!isSleeping && !isCharacterCurrentlyEating && (currentDetectedTileType === 2 || currentDetectedTileType === 3 || currentDetectedTileType === 4 || currentDetectedTileType === 99 || currentDetectedTileType === 98 || currentDetectedTileType === 50 || currentDetectedTileType === 51 || ITEM_TYPES[currentDetectedTileType])) {
+    if (!isSleeping && !isCharacterCurrentlyEating && (currentDetectedTileType === 2 || currentDetectedTileType === 3 || currentDetectedTileType === 4 || currentDetectedTileType === 5 || currentDetectedTileType === 99 || currentDetectedTileType === 98 || currentDetectedTileType === 50 || currentDetectedTileType === 51 || ITEM_TYPES[currentDetectedTileType])) {
       setCanInteractWithEKey(true);
       setInteractionTileTypeForEKey(currentDetectedTileType);
     } else {
       setCanInteractWithEKey(false);
-      setInteractionTileTypeForEKey(0);
+      setInteractionTileTypeForEKey(0); // 
     }
   }, [characterWorldPosition, assetsReady, mapDimensions, activeCollisionMapConfig, onInteractionAvailable, isSleeping, isCharacterCurrentlyEating, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT]);
 
@@ -173,13 +179,13 @@ function GameCanvas({
         if (activeCollisionMapConfig) {
           if (attemptedMoveX !== currentX) {
             const tileTypeX = getOverlappingTileType(attemptedMoveX, currentY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig);
-            if (tileTypeX === 0 || tileTypeX === 2 || tileTypeX === 3 || tileTypeX === 4 || tileTypeX === 99 || tileTypeX === 98 || tileTypeX === 50 || tileTypeX === 51 || ITEM_TYPES[tileTypeX]) {
+            if (tileTypeX === 0 || tileTypeX === 2 || tileTypeX === 3 || tileTypeX === 4 || tileTypeX === 5 || tileTypeX === 99 || tileTypeX === 98 || tileTypeX === 50 || tileTypeX === 51 || ITEM_TYPES[tileTypeX]) {
               finalTargetX = attemptedMoveX;
             }
           }
           if (attemptedMoveY !== currentY) {
             const tileTypeY = getOverlappingTileType(finalTargetX, attemptedMoveY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig);
-            if (tileTypeY === 0 || tileTypeY === 2 || tileTypeY === 3 || tileTypeY === 4 || tileTypeY === 99 || tileTypeY === 98 || tileTypeY === 50 || tileTypeY === 51 || ITEM_TYPES[tileTypeY]) {
+            if (tileTypeY === 0 || tileTypeY === 2 || tileTypeY === 3 || tileTypeY === 4 || tileTypeY === 5 || tileTypeY === 99 || tileTypeY === 98 || tileTypeY === 50 || tileTypeY === 51 || ITEM_TYPES[tileTypeY]) {
               finalTargetY = attemptedMoveY;
             }
           }
@@ -224,6 +230,8 @@ function GameCanvas({
                 context.fillStyle = 'rgba(0, 255, 0, 0.3)';
               } else if (tileValue === 4) { 
                 context.fillStyle = 'rgba(128, 0, 128, 0.3)';
+              } else if (tileValue === 5) { // BARU
+                context.fillStyle = 'rgba(255, 0, 255, 0.4)';
               } else if (tileValue === 99) {
                 context.fillStyle = 'rgba(255, 105, 180, 0.4)';
               } else if (tileValue === 98) {

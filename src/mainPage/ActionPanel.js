@@ -13,6 +13,8 @@ const ActionPanel = React.memo(({
   onExitSwamp,
   onEnterCave,
   onExitCave,
+  onEnterBathroom,
+  onExitBathroom,
   onSleepInBed,
   onMakanAtTable 
 }) => {
@@ -22,7 +24,7 @@ const ActionPanel = React.memo(({
     <div>
       <div className="action-buttons mb-4">
         <h5 className="text-white mb-3">Actions</h5>
-        {(availableInteractionType === 2 || availableInteractionType === 3 || availableInteractionType === 4 || availableInteractionType === 99 || availableInteractionType === 98) && (
+        {(availableInteractionType === 2 || availableInteractionType === 3 || availableInteractionType === 4 || availableInteractionType === 5 || availableInteractionType === 99 || availableInteractionType === 98) && (
         <div className="map-interaction-buttons mt-3">
           {/* Masuk Rumah */}
           {availableInteractionType === 2 && currentMapKey === 'world' && (
@@ -58,6 +60,18 @@ const ActionPanel = React.memo(({
           {availableInteractionType === 2 && currentMapKey === 'caves' && (
             <div className="p-1">
               <button className="btn btn-primary w-100 mb-2" onClick={onExitCave}>Keluar Gua</button>
+            </div>
+          )}
+          {/* Masuk Kamar Mandi */}
+          {availableInteractionType === 5 && currentMapKey === 'house' && (
+             <div className="p-1">
+              <button className="btn btn-info w-100 mb-2" onClick={onEnterBathroom}>Masuk Kamar Mandi</button>
+            </div>
+          )}
+          {/* Keluar Kamar Mandi */}
+          {availableInteractionType === 5 && currentMapKey === 'bathroom' && (
+             <div className="p-1">
+              <button className="btn btn-info w-100 mb-2" onClick={onExitBathroom}>Keluar Kamar Mandi</button>
             </div>
           )}
           {/* Tidur di Kasur */}

@@ -27,6 +27,7 @@ export function getOverlappingTileType(worldX, worldY, charWidth, charHeight, cu
   let isOverlappingDoor = false; // 
   let isOverlappingSwamp = false; // 
   let isOverlappingCave = false; // 
+  let isOverlappingBathroom = false;
   let isOverlappingBed = false; // 
   let isOverlappingMakan = false;
   let isOverlappingMinigame1 = false; // 
@@ -44,6 +45,8 @@ export function getOverlappingTileType(worldX, worldY, charWidth, charHeight, cu
         isOverlappingSwamp = true; // 
       } else if (tileType === 4) { 
         isOverlappingCave = true; // 
+      } else if (tileType === 5) { // BARU: Cek untuk tile kamar mandi
+        isOverlappingBathroom = true;
       } else if (tileType === 99) { 
         isOverlappingBed = true; // 
       } else if (tileType === 98) {
@@ -80,6 +83,9 @@ export function getOverlappingTileType(worldX, worldY, charWidth, charHeight, cu
   }
   if (isOverlappingMinigame1) {
     return 50;
+  }
+  if (isOverlappingBathroom) {
+    return 5;
   }
   if (isOverlappingMinigame2) {
     return 51;

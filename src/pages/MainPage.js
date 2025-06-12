@@ -7,6 +7,7 @@ import mapBackground from '../assets/map/mainmap.png';
 import homeMapBackground from '../assets/map/home.png';
 import swampMapBackground from '../assets/map/rawa.png';
 import cavesMapBackground from '../assets/map/caves.png';
+import bathroomMapBackground from '../assets/map/bathroom.png';
 import PlayerStats from '../mainPage/Playerstats';
 import StatusBarGrid from '../mainPage/StatusBarGrid';
 import ActionPanel from '../mainPage/ActionPanel';
@@ -35,6 +36,7 @@ const mapDetails = {
     entryPointFromHouse: { x: 1600, y: 1500 },
     entryPointFromSwamp: { x: 400, y: 1850 },
     entryPointFromCave: { x: 3550, y: 540 },
+    entryPointFromBathroom: { x: 300, y: 200 },
   },
   house: {
     imageSrc: homeMapBackground,
@@ -47,7 +49,11 @@ const mapDetails = {
   caves: {
     imageSrc: cavesMapBackground,
     initialPlayerPos: { x: 700, y: 200 },
-  }
+  },
+  bathroom: {
+    imageSrc: bathroomMapBackground,
+    initialPlayerPos: { x: 285, y: 260 },
+  },
 };
 const DEFAULT_STATS = {
   makan: 60,
@@ -168,8 +174,8 @@ function MainPage() {
         if (currentMapKey === 'house') newSpawnPos = mapDetails.world.entryPointFromHouse;
         else if (currentMapKey === 'swamp') newSpawnPos = mapDetails.world.entryPointFromSwamp;
         else if (currentMapKey === 'caves') newSpawnPos = mapDetails.world.entryPointFromCave;
+        else if (currentMapKey === 'bathroom') newSpawnPos = mapDetails.world.entryPointFromBathroom;
       }
-      
       setCurrentMapKey(targetKey);
       setCharacterSpawnPosition(newSpawnPos);
       setAvailableInteractionType(0);
@@ -374,6 +380,8 @@ function MainPage() {
                 onExitSwamp={() => handleMapTransitionRequest('world')}
                 onEnterCave={() => handleMapTransitionRequest('caves')}
                 onExitCave={() => handleMapTransitionRequest('world')}
+                onEnterBathroom={() => handleMapTransitionRequest('bathroom')}
+                onExitBathroom={() => handleMapTransitionRequest('world')}
                 onSleepInBed={handleSleepInBed}
                 onMakanAtTable={handleMakanInteraction}
               />
