@@ -159,6 +159,9 @@ function MainPage() {
     } else if (targetKey === 'minigame2_trigger') {
       console.log("Navigating to minigame 2. Game state will NOT be saved.");
       navigate('/minigame2');
+    } else if (targetKey === 'minigame3_trigger') { // BARU
+      console.log("Navigating to minigame 3. Game state will NOT be saved.");
+      navigate('/minigame3');
     } else if (mapDetails[targetKey]) {
       let newSpawnPos = mapDetails[targetKey].initialPlayerPos;
       if (targetKey === 'world') {

@@ -33,6 +33,7 @@ export function getOverlappingTileType(worldX, worldY, charWidth, charHeight, cu
   let isOverlappingBathing = false;
   let isOverlappingMinigame1 = false; // 
   let isOverlappingMinigame2 = false;
+  let isOverlappingMinigame3 = false;
   let isOverlappingItem = false; // BARU: untuk tile item
 
   for (let r = startRow; r <= endRow; r++) {
@@ -58,7 +59,9 @@ export function getOverlappingTileType(worldX, worldY, charWidth, charHeight, cu
         isOverlappingMinigame1 = true; // 
       } else if (tileType === 51) { // NEW: Check for Minigame 2 tile
         isOverlappingMinigame2 = true; 
-      }else if (ITEM_TYPES[tileType]) {
+      } else if (tileType === 52) { // BARU: Cek untuk Minigame 3
+        isOverlappingMinigame3 = true;
+      } else if (ITEM_TYPES[tileType]) {
         isOverlappingItem = true;
       }
     }
@@ -95,6 +98,9 @@ export function getOverlappingTileType(worldX, worldY, charWidth, charHeight, cu
   }
   if (isOverlappingMinigame2) {
     return 51;
+  }
+  if (isOverlappingMinigame3) {
+    return 52; 
   }
   if (isOverlappingItem) {
     // Kita bisa saja mengembalikan tipe item spesifik jika perlu,

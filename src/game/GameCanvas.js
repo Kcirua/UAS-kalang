@@ -113,6 +113,9 @@ function GameCanvas({
     } else if (interactionTileTypeForEKey === 51) {
       console.log("Interacting with Minigame Tile (51). Current position:", characterWorldPosition);
       onMapTransitionRequest('minigame2_trigger', characterWorldPosition);
+    } else if (interactionTileTypeForEKey === 52) { // BARU
+      console.log("Interacting with Minigame Tile (52). Current position:", characterWorldPosition);
+      onMapTransitionRequest('minigame3_trigger', characterWorldPosition);
     } else if (ITEM_TYPES[interactionTileTypeForEKey]) {
         if (onItemPickup) {
             onItemPickup(interactionTileTypeForEKey);
@@ -139,7 +142,7 @@ function GameCanvas({
       onInteractionAvailable(currentDetectedTileType);
     }
 
-    if (!isSleeping && !isCharacterCurrentlyEating && !isCharacterCurrentlyBathing && (currentDetectedTileType === 2 || currentDetectedTileType === 3 || currentDetectedTileType === 4 || currentDetectedTileType === 5 || currentDetectedTileType === 99 || currentDetectedTileType === 98 || currentDetectedTileType === 97 || currentDetectedTileType === 50 || currentDetectedTileType === 51 || ITEM_TYPES[currentDetectedTileType])) {
+    if (!isSleeping && !isCharacterCurrentlyEating && !isCharacterCurrentlyBathing && (currentDetectedTileType === 2 || currentDetectedTileType === 3 || currentDetectedTileType === 4 || currentDetectedTileType === 5 || currentDetectedTileType === 99 || currentDetectedTileType === 98 || currentDetectedTileType === 97 || currentDetectedTileType === 50 || currentDetectedTileType === 51 || currentDetectedTileType === 52 || ITEM_TYPES[currentDetectedTileType])) {
       setCanInteractWithEKey(true);
       setInteractionTileTypeForEKey(currentDetectedTileType);
     } else {
@@ -185,13 +188,13 @@ function GameCanvas({
         if (activeCollisionMapConfig) {
           if (attemptedMoveX !== currentX) {
             const tileTypeX = getOverlappingTileType(attemptedMoveX, currentY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig);
-            if (tileTypeX === 0 || tileTypeX === 2 || tileTypeX === 3 || tileTypeX === 4 || tileTypeX === 5 || tileTypeX === 99 || tileTypeX === 98 || tileTypeX === 97 || tileTypeX === 50 || tileTypeX === 51 || ITEM_TYPES[tileTypeX]) {
+            if (tileTypeX === 0 || tileTypeX === 2 || tileTypeX === 3 || tileTypeX === 4 || tileTypeX === 5 || tileTypeX === 99 || tileTypeX === 98 || tileTypeX === 97 || tileTypeX === 50 || tileTypeX === 51 || tileTypeX === 52 || ITEM_TYPES[tileTypeX]) { // BARU: ditambahkan 52
               finalTargetX = attemptedMoveX;
             }
           }
           if (attemptedMoveY !== currentY) {
             const tileTypeY = getOverlappingTileType(finalTargetX, attemptedMoveY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig);
-            if (tileTypeY === 0 || tileTypeY === 2 || tileTypeY === 3 || tileTypeY === 4 || tileTypeY === 5 || tileTypeY === 99 || tileTypeY === 98 || tileTypeY === 97 || tileTypeY === 50 || tileTypeY === 51 || ITEM_TYPES[tileTypeY]) {
+            if (tileTypeY === 0 || tileTypeY === 2 || tileTypeY === 3 || tileTypeY === 4 || tileTypeY === 5 || tileTypeY === 99 || tileTypeY === 98 || tileTypeY === 97 || tileTypeY === 50 || tileTypeY === 51 || tileTypeY === 52 || ITEM_TYPES[tileTypeY]) { // BARU: ditambahkan 52
               finalTargetY = attemptedMoveY;
             }
           }
@@ -246,6 +249,8 @@ function GameCanvas({
                 context.fillStyle = 'rgba(255, 165, 0, 0.4)';
               } else if (tileValue === 51) {
                 context.fillStyle = 'rgba(0, 165, 255, 0.4)';
+              } else if (tileValue === 52) { // BARU
+                context.fillStyle = 'rgba(255, 69, 0, 0.4)';
               } else if (ITEM_TYPES[tileValue]) {
                 context.fillStyle = 'rgba(255, 255, 0, 0.4)';
               }
