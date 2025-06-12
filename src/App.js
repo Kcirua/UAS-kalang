@@ -8,6 +8,7 @@ import LobbyPage from './pages/LobbyPage'; // [cite: 359]
 import MainPage from './pages/MainPage'; // [cite: 359]
 import GameOverPage from './pages/GameOverPage'; // [cite: 359]
 import Minigame1Page from './pages/Minigame1Page'; // BARU: Impor halaman minigame
+import Minigame2Page from './pages/Minigame2Page';
 import './style.css'; // [cite: 359]
 import bgMusicFile from './assets/audio/bg-music.mp3'; // [cite: 360]
 import StardewFade from './components/StardewFade'; // [cite: 360]
@@ -30,6 +31,7 @@ const routeRefs = { // [cite: 363]
   '/main': React.createRef(), // [cite: 363]
   '/gameover': React.createRef(), // [cite: 363]
   '/minigame1': React.createRef(), // BARU: Ref untuk rute minigame
+  '/minigame2': React.createRef(),
 }; // [cite: 363]
 
 function AnimatedRoutes() {
@@ -51,6 +53,7 @@ function AnimatedRoutes() {
             <Route path="/main" element={<MainPage />} /> {/* [cite: 365] */}
             <Route path="/gameover" element={<GameOverPage />} /> {/* [cite: 365] */}
             <Route path="/minigame1" element={<Minigame1Page />} /> {/* BARU: Rute untuk minigame */}
+            <Route path="/minigame2" element={<Minigame2Page />} />
           </Routes>
         </div>
       </CSSTransition>

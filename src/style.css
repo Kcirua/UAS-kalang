@@ -1236,6 +1236,107 @@ height: 160px;
     color: white;
 }
 
+.minigame2-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #0a4da3 0%, #3b85dd 40%, #87ceeb 70%, #87ceeb 100%);
+  font-family: 'Raleway', sans-serif;
+}
+
+.minigame2-container .wrapper {
+	max-width: 600px;
+	margin: 0 auto;
+	width: 100%;
+	text-align: center;
+	padding: 2%;
+	height: 500px;
+}
+
+.minigame2-container h1 {
+    color: #ecf0f1;
+}
+
+.minigame2-container h1 + p {
+	margin-bottom: 5%;
+    color: #f1c40f; /* Changed from red for better visibility */
+}
+
+.minigame2-container .scoreWrap {float: left;}
+.minigame2-container .timeWrap {float: right;}
+
+.minigame2-container .outerWrap:after {
+	content: "";
+	display: block;
+	clear: both;
+}
+
+.minigame2-container .words span.bg {
+	background-color: #04AF71;
+}
+
+.minigame2-container button {
+   border: none;
+  background-color: white;
+  box-shadow: 0px 5px 0px 0px black;
+  outline: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  font-size: 22px;
+  text-decoration: none;
+  margin: 20px;
+  color: #0a4da3 ;
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.minigame2-container button:active {
+  transform: translate(0px, 5px);
+  -webkit-transform: translate(0px, 5px);
+  box-shadow: 0px 1px 0px 0px;
+}
+
+.minigame2-container button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.minigame2-container .scoreWrap p, .minigame2-container .scoreWrap span, .minigame2-container .timeWrap p, .minigame2-container .timeWrap span {
+    font-size: 30px;
+    color: white;
+}
+
+.minigame2-container .wordsWrap {
+	margin-top: 50px;
+  height: 80px; /* Give it a fixed height to prevent layout shifts */
+}
+
+.minigame2-container .words span{
+    font-size: 60px;
+    letter-spacing: 1px;
+    color: #ECF0F1;
+    transition: background-color 0.2s ease;
+}
+
+.minigame2-container .game-over-message {
+  color: #e74c3c;
+  font-size: 1.5rem;
+  margin-top: 20px;
+}
+
+/* Animations for word fade out */
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.minigame2-container .animated.fadeOut {
+  animation-name: fadeOut;
+  animation-duration: 0.4s;
+}
+
 .inventory-section {
   background-color: rgba(0, 0, 0, 0.3);
   border-radius: 8px;

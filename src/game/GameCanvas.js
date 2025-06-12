@@ -84,6 +84,9 @@ function GameCanvas({
     } else if (interactionTileTypeForEKey === 50) { // Tile Minigame
       console.log("Interacting with Minigame Tile (50). Current position:", characterWorldPosition);
       onMapTransitionRequest('minigame1_trigger', characterWorldPosition); // Kirim trigger dan posisi
+    } else if (interactionTileTypeForEKey === 51) { // NEW: Tile Minigame 2
+      console.log("Interacting with Minigame Tile (51). Current position:", characterWorldPosition);
+      onMapTransitionRequest('minigame2_trigger', characterWorldPosition);
     } else if (ITEM_TYPES[interactionTileTypeForEKey]) { // DIUBAH: Cek jika itu adalah tipe item
         if (onItemPickup) {
             onItemPickup(interactionTileTypeForEKey);
@@ -111,7 +114,7 @@ function GameCanvas({
     }
 
     // DIUBAH: Izinkan interaksi untuk item
-    if (!isSleeping && (currentDetectedTileType === 2 || currentDetectedTileType === 3 || currentDetectedTileType === 4 || currentDetectedTileType === 99 || currentDetectedTileType === 50 || ITEM_TYPES[currentDetectedTileType])) {
+    if (!isSleeping && (currentDetectedTileType === 2 || currentDetectedTileType === 3 || currentDetectedTileType === 4 || currentDetectedTileType === 99 || currentDetectedTileType === 50 || currentDetectedTileType === 51 || ITEM_TYPES[currentDetectedTileType])) {
       setCanInteractWithEKey(true);
       setInteractionTileTypeForEKey(currentDetectedTileType);
     } else {
@@ -160,14 +163,14 @@ function GameCanvas({
           if (attemptedMoveX !== currentX) {
             const tileTypeX = getOverlappingTileType(attemptedMoveX, currentY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig);
             // DIUBAH: Izinkan berjalan di atas tile item
-            if (tileTypeX === 0 || tileTypeX === 2 || tileTypeX === 3 || tileTypeX === 4 || tileTypeX === 99 || tileTypeX === 50 || ITEM_TYPES[tileTypeX]) {
+            if (tileTypeX === 0 || tileTypeX === 2 || tileTypeX === 3 || tileTypeX === 4 || tileTypeX === 99 || tileTypeX === 50 || tileTypeX === 51 || ITEM_TYPES[tileTypeX]) {
               finalTargetX = attemptedMoveX;
             }
           }
           if (attemptedMoveY !== currentY) {
             const tileTypeY = getOverlappingTileType(finalTargetX, attemptedMoveY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig);
             // DIUBAH: Izinkan berjalan di atas tile item
-            if (tileTypeY === 0 || tileTypeY === 2 || tileTypeY === 3 || tileTypeY === 4 || tileTypeY === 99 || tileTypeY === 50 || ITEM_TYPES[tileTypeY]) {
+            if (tileTypeY === 0 || tileTypeY === 2 || tileTypeY === 3 || tileTypeY === 4 || tileTypeY === 99 || tileTypeY === 50 || tileTypeY === 51 || ITEM_TYPES[tileTypeY]) {
               finalTargetY = attemptedMoveY;
             }
           }
@@ -216,6 +219,8 @@ function GameCanvas({
                 context.fillStyle = 'rgba(255, 105, 180, 0.4)';
               } else if (tileValue === 50) {
                 context.fillStyle = 'rgba(255, 165, 0, 0.4)';
+              } else if (tileValue === 51) { // NEW: Debug color for minigame 2 tile
+                context.fillStyle = 'rgba(0, 165, 255, 0.4)';
               } else if (ITEM_TYPES[tileValue]) { // DIUBAH: Gambar overlay untuk item
                 context.fillStyle = 'rgba(255, 255, 0, 0.4)'; // Kuning untuk item
               }

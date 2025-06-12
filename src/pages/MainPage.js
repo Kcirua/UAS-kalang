@@ -158,6 +158,9 @@ function MainPage() {
     if (targetKey === 'minigame1_trigger') {
       console.log("Navigating to minigame. Game state will NOT be saved.");
       navigate('/minigame1');
+    } else if (targetKey === 'minigame2_trigger') { // NEW: Handle trigger for Minigame 2
+      console.log("Navigating to minigame 2. Game state will NOT be saved.");
+      navigate('/minigame2');
     } else if (mapDetails[targetKey]) {
       let newSpawnPos = mapDetails[targetKey].initialPlayerPos;
       if (targetKey === 'world') {
