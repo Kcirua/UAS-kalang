@@ -20,7 +20,7 @@ export const CHARACTER_STEP_SIZE = 1; //
 // Konfigurasi default untuk sprite karakter (blue_mushroom_walk.png)
 // Asumsi: Baris 0 untuk jalan/hadap kanan, Baris 1 untuk jalan/hadap kiri
 export const DEFAULT_SPRITE_CONFIG = {
-  numFrames: 8,        // Jumlah frame animasi jalan
+  numFrames: 4,        // Jumlah frame animasi jalan
   frameWidth: 64,      // Lebar satu frame di spritesheet
   frameHeight: 64,     // Tinggi satu frame di spritesheet
   animationSpeedMs: 100, // Kecepatan animasi dalam milidetik per frame

@@ -237,7 +237,7 @@ function GameCanvas({
       animSourceY = spriteConfigToUse.rowIndex * spriteConfigToUse.frameHeight;
       } else { 
         // Logika untuk animasi berjalan
-        if (spriteConfigToUse.numFrames === 8 && spriteConfigToUse.animationSpeedMs === 100) {
+        if (spriteConfigToUse.numFrames === 4 && spriteConfigToUse.animationSpeedMs === 100) {
           // **PERUBAHAN DIMULAI DI SINI**
           // Tentukan baris animasi berdasarkan arah hadap karakter
         if (facingDirection === 'down') {
