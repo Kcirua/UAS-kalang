@@ -68,6 +68,7 @@ function MainPage() {
   const [characterSpawnPosition, setCharacterSpawnPosition] = useState(() => mapDetails.world.initialPlayerPos);
   const [availableInteractionType, setAvailableInteractionType] = useState(0);
   const [isCharacterSleeping, setIsCharacterSleeping] = useState(false);
+  const [isCharacterEating, setIsCharacterEating] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [inventory, setInventory] = useState([]);
 
@@ -281,10 +282,10 @@ function MainPage() {
   // Callback dari GameCanvas tentang interaksi yang tersedia
   const handleInteractionAvailableFromCanvas = useCallback((type) => {
     if (!isInitialized) return;
-    if (!isCharacterSleeping) {
+    if (!isCharacterSleeping && !isCharacterEating) {
       setAvailableInteractionType(type);
     }
-  }, [isCharacterSleeping, isInitialized]);
+  },[isCharacterSleeping, isCharacterEating, isInitialized]);
 
   // Handler untuk tidur di kasur
   const handleSleepInBed = useCallback(() => {
@@ -303,8 +304,26 @@ function MainPage() {
         makan: Math.max(0, prevStats.makan - 10),
       }));
       setIsCharacterSleeping(false);
-    }, 3000);
+    }, 5000);
   }, [isCharacterSleeping, availableInteractionType, isInitialized]);
+
+   const handleMakanInteraction = useCallback(() => {
+    if (!isInitialized || isCharacterEating || availableInteractionType !== 98) return;
+    
+    console.log("Starting to eat at the table...");
+    setIsCharacterEating(true);
+    setAvailableInteractionType(0);
+
+    // Animate for 4 seconds and then restore stats
+    setTimeout(() => {
+      console.log("Finished eating.");
+      setStats(prevStats => ({
+        ...prevStats,
+        makan: Math.min(100, prevStats.makan + 30), // Restore 30 food points
+      }));
+      setIsCharacterEating(false);
+    }, 4000); // 4-second animation duration
+  }, [isCharacterEating, availableInteractionType, isInitialized]);
 
   // Tampilan loading jika belum terinisialisasi
   if (!isInitialized || !mapDetails[currentMapKey]?.imageSrc) {
@@ -334,6 +353,8 @@ function MainPage() {
                   isCharacterCurrentlySleeping={isCharacterSleeping}
                   onBedInteraction={handleSleepInBed}
                   onItemPickup={handleItemPickup}
+                  isCharacterCurrentlyEating={isCharacterEating}
+                  onMakanInteraction={handleMakanInteraction}
                 />
               </div>
             </div>
@@ -354,6 +375,7 @@ function MainPage() {
                 onEnterCave={() => handleMapTransitionRequest('caves')}
                 onExitCave={() => handleMapTransitionRequest('world')}
                 onSleepInBed={handleSleepInBed}
+                onMakanAtTable={handleMakanInteraction}
               />
               
               <InventoryPanel inventory={inventory} onUseItem={handleUseItem} />

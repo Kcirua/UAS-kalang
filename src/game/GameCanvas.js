@@ -1,4 +1,3 @@
-// src/game/GameCanvas.js
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import {
   VIEWPORT_WIDTH, VIEWPORT_HEIGHT, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT,
@@ -10,7 +9,6 @@ import useCamera from './useCamera';
 import useCharacter from './useCharacter';
 import MinimapCanvas from '../pages/MinimapCanvas';
 import { getOverlappingTileType } from './collisionUtils';
-// DIUBAH: Impor ITEM_TYPES
 import { collisionMapsData, ITEM_TYPES } from './collisionData';
 
 function GameCanvas({
@@ -22,7 +20,9 @@ function GameCanvas({
   onInteractionAvailable,
   isCharacterCurrentlySleeping,
   onBedInteraction,
-  onItemPickup, // DIUBAH: Tambahkan prop baru
+  isCharacterCurrentlyEating,
+  onMakanInteraction,
+  onItemPickup,
 }) {
   const canvasRef = useRef(null);
   const {
@@ -37,6 +37,7 @@ function GameCanvas({
     activeKeysRef, facingDirection, interactionKeyRef,
     isSleeping,
     setSleepingState,
+    setEatingState,
     spriteConfigToUse,
     isMoving,
   } = characterHook;
@@ -57,6 +58,12 @@ function GameCanvas({
       setSleepingState(isCharacterCurrentlySleeping);
     }
   }, [isCharacterCurrentlySleeping, setSleepingState]);
+
+  useEffect(() => {
+    if (setEatingState) {
+      setEatingState(isCharacterCurrentlyEating);
+    }
+  }, [isCharacterCurrentlyEating, setEatingState]);
 
   const handleEKeyInteraction = useCallback(() => {
     if (isSleeping) return;
@@ -81,18 +88,22 @@ function GameCanvas({
       if (onBedInteraction) {
         onBedInteraction();
       }
+    } else if (interactionTileTypeForEKey === 98) {
+      if (onMakanInteraction) {
+        onMakanInteraction();
+      }
     } else if (interactionTileTypeForEKey === 50) { // Tile Minigame
       console.log("Interacting with Minigame Tile (50). Current position:", characterWorldPosition);
-      onMapTransitionRequest('minigame1_trigger', characterWorldPosition); // Kirim trigger dan posisi
+      onMapTransitionRequest('minigame1_trigger', characterWorldPosition);
     } else if (interactionTileTypeForEKey === 51) { // NEW: Tile Minigame 2
       console.log("Interacting with Minigame Tile (51). Current position:", characterWorldPosition);
       onMapTransitionRequest('minigame2_trigger', characterWorldPosition);
-    } else if (ITEM_TYPES[interactionTileTypeForEKey]) { // DIUBAH: Cek jika itu adalah tipe item
+    } else if (ITEM_TYPES[interactionTileTypeForEKey]) {
         if (onItemPickup) {
             onItemPickup(interactionTileTypeForEKey);
         }
     }
-  }, [currentMapKey, onMapTransitionRequest, interactionTileTypeForEKey, onBedInteraction, isSleeping, characterWorldPosition, onItemPickup]); // DIUBAH: Tambahkan onItemPickup ke dependencies
+  }, [currentMapKey, onMapTransitionRequest, interactionTileTypeForEKey, onBedInteraction, onMakanInteraction, isSleeping, characterWorldPosition, onItemPickup]);
 
   useEffect(() => {
     if (!assetsReady || !mapDimensions.width || !mapDimensions.height || !activeCollisionMapConfig) {
@@ -102,7 +113,7 @@ function GameCanvas({
       return;
     }
     let currentDetectedTileType = 0;
-    if (!isSleeping) {
+    if (!isSleeping && !isCharacterCurrentlyEating) { // Prevent interaction check while eating
         currentDetectedTileType = getOverlappingTileType(
             characterWorldPosition.x, characterWorldPosition.y,
             CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig
@@ -113,15 +124,14 @@ function GameCanvas({
       onInteractionAvailable(currentDetectedTileType);
     }
 
-    // DIUBAH: Izinkan interaksi untuk item
-    if (!isSleeping && (currentDetectedTileType === 2 || currentDetectedTileType === 3 || currentDetectedTileType === 4 || currentDetectedTileType === 99 || currentDetectedTileType === 50 || currentDetectedTileType === 51 || ITEM_TYPES[currentDetectedTileType])) {
+    if (!isSleeping && !isCharacterCurrentlyEating && (currentDetectedTileType === 2 || currentDetectedTileType === 3 || currentDetectedTileType === 4 || currentDetectedTileType === 99 || currentDetectedTileType === 98 || currentDetectedTileType === 50 || currentDetectedTileType === 51 || ITEM_TYPES[currentDetectedTileType])) {
       setCanInteractWithEKey(true);
       setInteractionTileTypeForEKey(currentDetectedTileType);
     } else {
       setCanInteractWithEKey(false);
       setInteractionTileTypeForEKey(0);
     }
-  }, [characterWorldPosition, assetsReady, mapDimensions, activeCollisionMapConfig, onInteractionAvailable, isSleeping, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT]);
+  }, [characterWorldPosition, assetsReady, mapDimensions, activeCollisionMapConfig, onInteractionAvailable, isSleeping, isCharacterCurrentlyEating, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -134,12 +144,13 @@ function GameCanvas({
     let animationFrameId;
 
     const drawGame = () => {
-      if (interactionKeyRef.current && canInteractWithEKey && !isSleeping) {
+      if (interactionKeyRef.current && canInteractWithEKey && !isSleeping && !isCharacterCurrentlyEating) {
         handleEKeyInteraction();
         interactionKeyRef.current = false;
       }
 
-      if (!isSleeping) {
+      // MODIFICATION: Added check for isCharacterCurrentlyEating to prevent movement
+      if (!isSleeping && !isCharacterCurrentlyEating) {
         const activeKeys = activeKeysRef.current;
         const currentX = characterWorldPosition.x;
         const currentY = characterWorldPosition.y;
@@ -162,15 +173,13 @@ function GameCanvas({
         if (activeCollisionMapConfig) {
           if (attemptedMoveX !== currentX) {
             const tileTypeX = getOverlappingTileType(attemptedMoveX, currentY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig);
-            // DIUBAH: Izinkan berjalan di atas tile item
-            if (tileTypeX === 0 || tileTypeX === 2 || tileTypeX === 3 || tileTypeX === 4 || tileTypeX === 99 || tileTypeX === 50 || tileTypeX === 51 || ITEM_TYPES[tileTypeX]) {
+            if (tileTypeX === 0 || tileTypeX === 2 || tileTypeX === 3 || tileTypeX === 4 || tileTypeX === 99 || tileTypeX === 98 || tileTypeX === 50 || tileTypeX === 51 || ITEM_TYPES[tileTypeX]) {
               finalTargetX = attemptedMoveX;
             }
           }
           if (attemptedMoveY !== currentY) {
             const tileTypeY = getOverlappingTileType(finalTargetX, attemptedMoveY, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig);
-            // DIUBAH: Izinkan berjalan di atas tile item
-            if (tileTypeY === 0 || tileTypeY === 2 || tileTypeY === 3 || tileTypeY === 4 || tileTypeY === 99 || tileTypeY === 50 || tileTypeY === 51 || ITEM_TYPES[tileTypeY]) {
+            if (tileTypeY === 0 || tileTypeY === 2 || tileTypeY === 3 || tileTypeY === 4 || tileTypeY === 99 || tileTypeY === 98 || tileTypeY === 50 || tileTypeY === 51 || ITEM_TYPES[tileTypeY]) {
               finalTargetY = attemptedMoveY;
             }
           }
@@ -217,12 +226,14 @@ function GameCanvas({
                 context.fillStyle = 'rgba(128, 0, 128, 0.3)';
               } else if (tileValue === 99) {
                 context.fillStyle = 'rgba(255, 105, 180, 0.4)';
+              } else if (tileValue === 98) {
+                context.fillStyle = 'rgba(255, 215, 0, 0.4)';
               } else if (tileValue === 50) {
                 context.fillStyle = 'rgba(255, 165, 0, 0.4)';
-              } else if (tileValue === 51) { // NEW: Debug color for minigame 2 tile
+              } else if (tileValue === 51) {
                 context.fillStyle = 'rgba(0, 165, 255, 0.4)';
-              } else if (ITEM_TYPES[tileValue]) { // DIUBAH: Gambar overlay untuk item
-                context.fillStyle = 'rgba(255, 255, 0, 0.4)'; // Kuning untuk item
+              } else if (ITEM_TYPES[tileValue]) {
+                context.fillStyle = 'rgba(255, 255, 0, 0.4)';
               }
               context.fillRect(tileViewportX, tileViewportY, tileW, tileH);
             }
@@ -237,36 +248,25 @@ function GameCanvas({
         let animSourceX = currentFrame * spriteConfigToUse.frameWidth;
         let animSourceY;
 
-      if (isSleeping || !isMoving) {
-      // Gunakan animasi idle jika karakter diam atau tidur
-      animSourceY = spriteConfigToUse.rowIndex * spriteConfigToUse.frameHeight;
-      } else { 
-        // Logika untuk animasi berjalan
-        if (spriteConfigToUse.numFrames === 4 && spriteConfigToUse.animationSpeedMs === 100) {
-          // **PERUBAHAN DIMULAI DI SINI**
-          // Tentukan baris animasi berdasarkan arah hadap karakter
-        if (facingDirection === 'down') {
-          // Asumsi: Animasi jalan ke bawah ada di baris ke-4 (indeks 4)
-          animSourceY = 4 * spriteConfigToUse.frameHeight;
-        } else if (facingDirection === 'left') {
-          // Animasi jalan ke kiri ada di baris ke-5 (indeks 5)
-          animSourceY = 5 * spriteConfigToUse.frameHeight;
-        } else if (facingDirection === 'right') {
-          // Animasi jalan ke kanan ada di baris ke-6 (indeks 6)
-          animSourceY = 6 * spriteConfigToUse.frameHeight;
-        } else if (facingDirection === 'up') {
-          // Asumsi: Animasi jalan ke atas ada di baris ke-7 (indeks 7)
-          animSourceY = 7 * spriteConfigToUse.frameHeight;
-        } else {
-          // Fallback jika arah tidak diketahui, kembali ke animasi idle menghadap bawah
+        // This logic correctly uses the rowIndex from the spriteConfig determined in useCharacter.
+        // When not moving (which includes sleeping and eating), it uses the specified animation row.
+        if (isSleeping || isCharacterCurrentlyEating || !isMoving) {
           animSourceY = spriteConfigToUse.rowIndex * spriteConfigToUse.frameHeight;
-        }
-        // **PERUBAHAN BERAKHIR DI SINI**
         } else { 
-          // Fallback untuk konfigurasi sprite yang berbeda
-          animSourceY = spriteConfigToUse.rowIndex * spriteConfigToUse.frameHeight;
+          // Walking animation logic
+          if (facingDirection === 'down') {
+            animSourceY = 4 * spriteConfigToUse.frameHeight;
+          } else if (facingDirection === 'left') {
+            animSourceY = 5 * spriteConfigToUse.frameHeight;
+          } else if (facingDirection === 'right') {
+            animSourceY = 6 * spriteConfigToUse.frameHeight;
+          } else if (facingDirection === 'up') {
+            animSourceY = 7 * spriteConfigToUse.frameHeight;
+          } else {
+            // Fallback
+            animSourceY = spriteConfigToUse.rowIndex * spriteConfigToUse.frameHeight;
+          }
         }
-      }
 
         context.drawImage(
           characterImage, 
@@ -299,6 +299,7 @@ function GameCanvas({
     canInteractWithEKey, handleEKeyInteraction,
     activeCollisionMapConfig,
     isSleeping,
+    isCharacterCurrentlyEating,
     spriteConfigToUse,
     isMoving,
   ]);

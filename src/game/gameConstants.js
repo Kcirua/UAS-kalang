@@ -46,6 +46,14 @@ export const IDLE_SPRITE_CONFIG = {
   rowIndex: 3, // Contoh: Baris ke-2 (0-indexed) pada sprite sheet untuk animasi idle
 };
 
+export const MAKAN_SPRITE_CONFIG = {
+  numFrames: 12, // Example: 6 frames for eating animation
+  frameWidth: 64,
+  frameHeight: 64,
+  animationSpeedMs: 200, // Animation speed for eating
+  rowIndex: 1, // ASSUMPTION: The eating animation is on the 10th row (index 9)
+};
+
 export const MINIMAP_WIDTH = 150; //
 export const MINIMAP_HEIGHT = 100; //
 export const MINIMAP_CHARACTER_DOT_SIZE = 5; //

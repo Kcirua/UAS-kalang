@@ -1,62 +1,72 @@
-// src/game/useCharacter.js
-import { useState, useEffect, useRef, useCallback } from 'react'; //
-import { DEFAULT_SPRITE_CONFIG, SLEEP_SPRITE_CONFIG, IDLE_SPRITE_CONFIG } from './gameConstants';
-// Impor IDLE_SPRITE_CONFIG
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { DEFAULT_SPRITE_CONFIG, SLEEP_SPRITE_CONFIG, IDLE_SPRITE_CONFIG, MAKAN_SPRITE_CONFIG } from './gameConstants';
 
 function useCharacter({
   initialPosition,
 }) {
-  const [worldPosition, setWorldPosition] = useState(initialPosition); //
+  const [worldPosition, setWorldPosition] = useState(initialPosition);
   const [isMoving, setIsMoving] = useState(false);
-  const [currentFrame, setCurrentFrame] = useState(0); //
-  const [facingDirection, setFacingDirection] = useState('down'); // DIUBAH: Default menghadap ke bawah
-  const activeKeysRef = useRef(new Set()); //
-  const interactionKeyRef = useRef(false); //
+  const [currentFrame, setCurrentFrame] = useState(0);
+  const [facingDirection, setFacingDirection] = useState('down');
+  const activeKeysRef = useRef(new Set());
+  const interactionKeyRef = useRef(false);
   const [isSleepingForAnimation, setIsSleepingForAnimation] = useState(false);
-  const lastDirectionKey = useRef(null); // BARU: Untuk melacak tombol arah terakhir
+  const [isEatingForAnimation, setIsEatingForAnimation] = useState(false); // MODIFICATION: Added eating state
+  const lastDirectionKey = useRef(null);
 
-  const updateWorldPosition = useCallback((newPosition) => { //
+  const updateWorldPosition = useCallback((newPosition) => {
     setWorldPosition(newPosition);
   }, []);
-  useEffect(() => { //
+
+  useEffect(() => {
     setWorldPosition(initialPosition);
     setIsSleepingForAnimation(false);
-    setCurrentFrame(0); // Reset frame saat posisi berubah
+    setIsEatingForAnimation(false); // MODIFICATION: Reset eating state on position change
+    setCurrentFrame(0);
   }, [initialPosition]);
-  const setSleepingState = useCallback((shouldSleep) => { //
+
+  const setSleepingState = useCallback((shouldSleep) => {
     setIsSleepingForAnimation(shouldSleep);
     if (shouldSleep) {
       setIsMoving(false);
       activeKeysRef.current.clear();
-      setCurrentFrame(0); // Mulai animasi tidur dari frame pertama
+      setCurrentFrame(0);
     } else {
-      setCurrentFrame(0); // Reset frame saat bangun (ke frame pertama idle/jalan)
+      setCurrentFrame(0);
     }
   }, []);
-  // Event listener untuk input keyboard (gerakan dan interaksi)
-  useEffect(() => { //
+
+  // MODIFICATION: Added function to control eating state
+  const setEatingState = useCallback((shouldEat) => {
+    setIsEatingForAnimation(shouldEat);
+    if (shouldEat) {
+      setIsMoving(false);
+      activeKeysRef.current.clear();
+      setCurrentFrame(0); // Start eating animation from frame 0
+    } else {
+      setCurrentFrame(0); // Reset frame when done eating
+    }
+  }, []);
+
+  // Event listener for keyboard input
+  useEffect(() => {
     const handleKeyDown = (event) => {
-      if (isSleepingForAnimation) return; // Abaikan input jika sedang tidur
+      // MODIFICATION: Block input if sleeping or eating
+      if (isSleepingForAnimation || isEatingForAnimation) return;
 
       const moveKeys = ['arrowup', 'w', 'arrowdown', 's', 'arrowleft', 'a', 'arrowright', 'd'];
       const interactionKeys = ['e', 'enter'];
       const keyLower = event.key.toLowerCase();
 
-      if (moveKeys.includes(keyLower)) { //
+      if (moveKeys.includes(keyLower)) {
         event.preventDefault();
-
-        // --- PERUBAHAN UTAMA: Logika Gerakan 4 Arah ---
-        // Jika tombol yang ditekan berbeda dari yang terakhir, reset.
         if (keyLower !== lastDirectionKey.current) {
-            activeKeysRef.current.clear(); // Hapus semua tombol gerakan lain
-            lastDirectionKey.current = keyLower; // Set tombol baru sebagai yang terakhir
-            activeKeysRef.current.add(keyLower); // Tambahkan tombol baru
+            activeKeysRef.current.clear();
+            lastDirectionKey.current = keyLower;
+            activeKeysRef.current.add(keyLower);
         }
-        
-        if (!isMoving) setIsMoving(true); //
-
-        // DIUBAH: Menentukan arah hadap untuk 4 arah
-        if (keyLower === 'arrowleft' || keyLower === 'a') { //
+        if (!isMoving) setIsMoving(true);
+        if (keyLower === 'arrowleft' || keyLower === 'a') {
           setFacingDirection('left');
         } else if (keyLower === 'arrowright' || keyLower === 'd') {
           setFacingDirection('right');
@@ -66,24 +76,24 @@ function useCharacter({
           setFacingDirection('down');
         }
       }
-      if (interactionKeys.includes(keyLower)) { //
+      if (interactionKeys.includes(keyLower)) {
         event.preventDefault();
-        interactionKeyRef.current = true; //
+        interactionKeyRef.current = true;
       }
     };
 
     const handleKeyUp = (event) => {
-      if (isSleepingForAnimation) return;
+      // MODIFICATION: Block input if sleeping or eating
+      if (isSleepingForAnimation || isEatingForAnimation) return;
 
       const moveKeys = ['arrowup', 'w', 'arrowdown', 's', 'arrowleft', 'a', 'arrowright', 'd'];
       const keyLower = event.key.toLowerCase();
 
-      if (moveKeys.includes(keyLower)) { //
+      if (moveKeys.includes(keyLower)) {
         event.preventDefault();
-        // Hanya hapus tombol jika itu adalah tombol yang terakhir ditekan
         if(keyLower === lastDirectionKey.current) {
             activeKeysRef.current.delete(keyLower);
-            lastDirectionKey.current = null; // Reset pelacak
+            lastDirectionKey.current = null;
             if (activeKeysRef.current.size === 0) {
               setIsMoving(false);
               setCurrentFrame(0);
@@ -91,38 +101,45 @@ function useCharacter({
         }
       }
     };
-    window.addEventListener('keydown', handleKeyDown); //
-    window.addEventListener('keyup', handleKeyUp); //
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp); //
+      window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isMoving, isSleepingForAnimation]);
-  // Logika untuk menentukan sprite config yang aktif
+  }, [isMoving, isSleepingForAnimation, isEatingForAnimation]); // MODIFICATION: Added eating state to dependencies
+
+  // Logic to determine the active sprite config
   const spriteConfigToUse = (() => {
     if (isSleepingForAnimation) {
       return SLEEP_SPRITE_CONFIG;
     }
-    if (!isMoving) { // Tidak bergerak DAN tidak tidur -> IDLE
+    // MODIFICATION: Return eating sprite if eating
+    if (isEatingForAnimation) {
+      return MAKAN_SPRITE_CONFIG;
+    }
+    if (!isMoving) {
       return IDLE_SPRITE_CONFIG;
     }
-    // Jika bergerak (dan tidak tidur) -> DEFAULT (jalan)
     return DEFAULT_SPRITE_CONFIG;
   })();
-  // Efek untuk mengelola loop animasi (pergantian frame)
-  useEffect(() => { //
+
+  // Effect to manage the animation loop
+  useEffect(() => {
     let animationInterval;
-    const currentConfig = spriteConfigToUse; // Gunakan config yang sudah ditentukan
-    if (currentConfig.numFrames > 0) { // Pastikan ada frame untuk dianimasikan
+    const currentConfig = spriteConfigToUse;
+    if (currentConfig.numFrames > 0) {
          animationInterval = setInterval(() => {
             setCurrentFrame(prevFrame => (prevFrame + 1) % currentConfig.numFrames);
         }, currentConfig.animationSpeedMs);
     } else {
-        setCurrentFrame(0); // Jika tidak ada frame (atau numFrames 0), default ke frame 0
+        setCurrentFrame(0);
     }
 
     return () => clearInterval(animationInterval);
-  }, [isMoving, isSleepingForAnimation, spriteConfigToUse]);
+  }, [isMoving, isSleepingForAnimation, isEatingForAnimation, spriteConfigToUse]); // MODIFICATION: Added eating state to dependencies
+
   return {
     characterWorldPosition: worldPosition,
     updateWorldPosition,
@@ -131,10 +148,12 @@ function useCharacter({
     facingDirection,
     activeKeysRef,
     interactionKeyRef,
-    isSleeping: isSleepingForAnimation, // Expose status tidur aktual untuk logika game
-    setSleepingState,                 // Fungsi untuk mengontrol status tidur dari luar
-    spriteConfigToUse,                // Expose sprite 
+    isSleeping: isSleepingForAnimation,
+    setSleepingState,
+    isEating: isEatingForAnimation, // MODIFICATION: Expose eating state
+    setEatingState,               // MODIFICATION: Expose eating state setter
+    spriteConfigToUse,
   };
 }
 
-export default useCharacter; //
+export default useCharacter;

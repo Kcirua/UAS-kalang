@@ -28,6 +28,7 @@ export function getOverlappingTileType(worldX, worldY, charWidth, charHeight, cu
   let isOverlappingSwamp = false; // 
   let isOverlappingCave = false; // 
   let isOverlappingBed = false; // 
+  let isOverlappingMakan = false;
   let isOverlappingMinigame1 = false; // 
   let isOverlappingMinigame2 = false;
   let isOverlappingItem = false; // BARU: untuk tile item
@@ -45,6 +46,8 @@ export function getOverlappingTileType(worldX, worldY, charWidth, charHeight, cu
         isOverlappingCave = true; // 
       } else if (tileType === 99) { 
         isOverlappingBed = true; // 
+      } else if (tileType === 98) {
+        isOverlappingMakan = true;
       } else if (tileType === 50) { 
         isOverlappingMinigame1 = true; // 
       } else if (tileType === 51) { // NEW: Check for Minigame 2 tile
@@ -71,6 +74,9 @@ export function getOverlappingTileType(worldX, worldY, charWidth, charHeight, cu
   }
   if (isOverlappingBed) { 
     return 99; // 
+  }
+  if (isOverlappingMakan) {
+    return 98;
   }
   if (isOverlappingMinigame1) {
     return 50;

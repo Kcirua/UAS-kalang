@@ -13,7 +13,8 @@ const ActionPanel = React.memo(({
   onExitSwamp,
   onEnterCave,
   onExitCave,
-  onSleepInBed
+  onSleepInBed,
+  onMakanAtTable 
 }) => {
 
   // Pastikan ada keyword 'return' sebelum blok JSX
@@ -21,7 +22,7 @@ const ActionPanel = React.memo(({
     <div>
       <div className="action-buttons mb-4">
         <h5 className="text-white mb-3">Actions</h5>
-        {(availableInteractionType === 2 || availableInteractionType === 3 || availableInteractionType === 4 || availableInteractionType === 99) && (
+        {(availableInteractionType === 2 || availableInteractionType === 3 || availableInteractionType === 4 || availableInteractionType === 99 || availableInteractionType === 98) && (
         <div className="map-interaction-buttons mt-3">
           {/* Masuk Rumah */}
           {availableInteractionType === 2 && currentMapKey === 'world' && (
@@ -63,6 +64,11 @@ const ActionPanel = React.memo(({
           {availableInteractionType === 99 && (
             <div className="p-1">
               <button className="btn btn-primary w-100 mb-2" onClick={onSleepInBed}>Tidur di Kasur</button>
+            </div>
+          )}
+          {availableInteractionType === 98 && (
+            <div className="p-1">
+              <button className="btn btn-success w-100 mb-2" onClick={onMakanAtTable}>Makan</button>
             </div>
           )}
         </div>
