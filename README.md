@@ -25,3 +25,6 @@ Gameplay Rules & Mechanics:
 Notes:
 ------
 This game is created as part of a group project with a focus on creative storytelling, immersive design, and interactive gameplay experiences that promote exploration and strategic thinking.
+
+LINK GAME :
+https://uas-kalang.vercel.app/
