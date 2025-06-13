@@ -1,9 +1,10 @@
 // src/pages/Minigame1Page.js
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import '../style.css'; // Kita tetap mengimpor style.css utama
+import { Link, useLocation } from 'react-router-dom'; // DIUBAH: Impor useLocation
+import '../style.css';
 
 function Minigame1Page() {
+  const location = useLocation(); // DIUBAH: Dapatkan objek lokasi
 
   // Hook untuk menjalankan dan membersihkan logika JavaScript game
   useEffect(() => {
@@ -42,7 +43,7 @@ function Minigame1Page() {
       if (check) { 
           checkVis.classList.add('true');
       } else {
-          checkVis.classList.remove('true'); 
+          checkVis.classList.remove('true');
       }
     }
 
@@ -92,12 +93,10 @@ function Minigame1Page() {
         // Simpan handler untuk bisa dihapus nanti
         arrowClickHandlers.push({ leftArrow, rightArrow, leftClickHandler, rightClickHandler });
     });
-
     function shuffle(times = 10, delay = 10) {
         let count = 0;
         // Hentikan shuffle sebelumnya jika sedang berjalan
         if (shuffleInterval) clearInterval(shuffleInterval);
-
         shuffleInterval = setInterval(() => {
             const randomIndex = Math.floor(Math.random() * arrows.length);
             const randomDir = Math.random() > 0.5 ? 'left' : 'right';
@@ -145,7 +144,7 @@ function Minigame1Page() {
                 {/* Di sini kita render JSX yang setara dengan HTML dari Diskussion.html */}
                 <div className="minigame-container">
                     <div className="ui">
-                        <div className="title">Diskussion</div>
+                         <div className="title">Diskussion</div>
                         <div className="shuffle">Shuffle</div>
                         <div className="solved true">SOLVED</div>
                         {/* SVGs di sini tidak perlu diubah */}
@@ -163,35 +162,36 @@ function Minigame1Page() {
                             <div data-cur="a" data-static="4"></div><div data-cur=""  data-static="5"></div>
                             <div data-cur="a" data-static="0"></div><div data-cur="a" data-static="1"></div>
                         </div>
-                        <div className="circle" id="B" data-pos="0">
+                         <div className="circle" id="B" data-pos="0">
                             <div data-cur="b" data-static="0"></div><div data-cur="b" data-static="1"></div>
                             <div data-cur="b" data-static="2"></div><div data-cur="b" data-static="3"></div>
                             <div data-cur=""  data-static="4"></div><div data-cur="b" data-static="5"></div>
                         </div>
                         <div className="circle" id="C" data-pos="0">
                             <div data-cur=""  data-static="5"></div><div data-cur="c" data-static="0"></div>
-                            <div data-cur="c" data-static="1"></div><div data-cur="c" data-static="2"></div>
+                             <div data-cur="c" data-static="1"></div><div data-cur="c" data-static="2"></div>
                             <div data-cur="c" data-static="3"></div><div data-cur="c" data-static="4"></div>
                         </div>
-                        <div className="circle" id="D" data-pos="0">
+                         <div className="circle" id="D" data-pos="0">
                             <div data-cur="d" data-static="3"></div><div data-cur=""  data-static="4"></div>
                             <div data-cur="d" data-static="5"></div><div data-cur="d" data-static="0"></div>
-                            <div data-cur="d" data-static="1"></div><div data-cur="d" data-static="2"></div>
+                             <div data-cur="d" data-static="1"></div><div data-cur="d" data-static="2"></div>
                         </div>
                         <div className="arrow a"><div className="left"></div><div className="right"></div></div>
                         <div className="arrow b"><div className="left"></div><div className="right"></div></div>
-                        <div className="arrow c"><div className="left"></div><div className="right"></div></div>
+                         <div className="arrow c"><div className="left"></div><div className="right"></div></div>
                         <div className="arrow d"><div className="left"></div><div className="right"></div></div>
                     </div>
                 </div>
               </div>
-            </div>
+             </div>
             {/* Kolom kanan untuk panel aksi */}
             <div className="col-3 align-items-start flex-column p-4 action-panel">
               <h4 className="text-white">Minigame: Diskussion</h4>
               <p className="text-white-50">Tujuan: Pindahkan semua keping berwarna ke lingkaran dengan warna yang sama.</p>
               <div className="separator my-4 bg-white" style={{ height: '2px', opacity: '0.5' }}></div>
-              <Link to="/main" className="btn btn-info w-100 mt-4">
+              {/* DIUBAH: Tambahkan properti `state` ke Link */}
+              <Link to="/main" state={{ ...location.state, fromMinigame: true }} className="btn btn-info w-100 mt-4">
                 Keluar Minigame
               </Link>
             </div>

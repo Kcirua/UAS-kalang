@@ -1,6 +1,6 @@
 // src/pages/Minigame2Page.js
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom'; // DIUBAH: Impor useLocation
 import '../style.css'; // Main stylesheet
 
 // Word list from the original script
@@ -247,17 +247,16 @@ const wordList = ['ACCOUNT','ACCURATE','ACRES','ACROSS','ACT','ACTION','ACTIVE',
 'WRAPPED','WRITE','WRITER','WRITING','WRITTEN','WRONG','WROTE','YARD',
 'YEAR','YELLOW','YES','YESTERDAY','YET','YOU','YOUNG','YOUNGER',
 'YOUR','YOURSELF','YOUTH','ZERO','ZOO'];
-
 const INITIAL_TIME = 60;
 
 function Minigame2Page() {
+  const location = useLocation(); // DIUBAH: Dapatkan objek lokasi
   const [seconds, setSeconds] = useState(INITIAL_TIME);
   const [score, setScore] = useState(0);
   const [currentWord, setCurrentWord] = useState([]);
   const [isGameActive, setIsGameActive] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [wordFade, setWordFade] = useState(false);
-  
   const wordRef = useRef(null);
   const sparkAudioRef = useRef(null);
 
@@ -268,7 +267,6 @@ function Minigame2Page() {
     setCurrentWord(letters);
     setWordFade(false);
   }, []);
-
   const startGame = () => {
     setScore(0);
     setSeconds(INITIAL_TIME);
@@ -276,7 +274,6 @@ function Minigame2Page() {
     chooseNewWord();
     setIsGameActive(true);
   };
-
   // Timer effect
   useEffect(() => {
     if (!isGameActive) return;
@@ -293,7 +290,6 @@ function Minigame2Page() {
 
     return () => clearInterval(timer);
   }, [seconds, isGameActive]);
-  
   // Keyboard handling effect
   useEffect(() => {
     if (!isGameActive) return;
@@ -308,7 +304,7 @@ function Minigame2Page() {
 
         for (let i = 0; i < newWord.length; i++) {
           if (!newWord[i].typed) {
-            firstUntypedIndex = i;
+             firstUntypedIndex = i;
             break;
           }
         }
@@ -318,14 +314,13 @@ function Minigame2Page() {
           typedCorrectly = true;
         }
 
-        return newWord;
+         return newWord;
       });
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isGameActive]);
-
   // Word completion check
   useEffect(() => {
     if (currentWord.length > 0 && currentWord.every(letter => letter.typed)) {
@@ -361,7 +356,7 @@ function Minigame2Page() {
           <div className="timeWrap">
             <p>Time:</p>
             <span className="time">{seconds}</span>
-          </div>
+           </div>
         </div>
 
         <div className="wordsWrap">
@@ -369,7 +364,7 @@ function Minigame2Page() {
             {currentWord.map((letter, index) => (
               <span key={index} className={letter.typed ? 'bg' : ''}>
                 {letter.char}
-              </span>
+               </span>
             ))}
           </div>
         </div>
@@ -377,7 +372,8 @@ function Minigame2Page() {
         <button onClick={startGame} disabled={isGameActive}>
           {isGameOver ? 'Play Again' : 'Start'}
         </button>
-        <Link to="/main" className="btn btn-info w-50 mt-4">
+        {/* DIUBAH: Tambahkan properti `state` ke Link */}
+        <Link to="/main" state={{ ...location.state, fromMinigame: true }} className="btn btn-info w-50 mt-4">
           Exit Minigame
         </Link>
       </div>

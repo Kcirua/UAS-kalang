@@ -1,6 +1,6 @@
 // src/pages/Minigame3Page.js
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom'; // DIUBAH: Impor useLocation
 import '../style.css'; // Main stylesheet contains minigame styles
 
 const INITIAL_TIME = 30;
@@ -8,6 +8,7 @@ const ITEM_AMOUNT = 6;
 const ITEM_TYPES = ['🦋', '🐝', '🐜', '🦗', '🦟'];
 
 function Minigame3Page() {
+  const location = useLocation(); // DIUBAH: Dapatkan objek lokasi
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(INITIAL_TIME);
   const [isGameOver, setIsGameOver] = useState(false);
@@ -26,7 +27,6 @@ function Minigame3Page() {
     fallTimeout: null,
     timerInterval: null,
   });
-
   const resetItem = useCallback((i) => {
     const state = gameState.current;
     state.caught[i] = false;
@@ -41,7 +41,7 @@ function Minigame3Page() {
     state.Speed[i] = Math.random() * 3 + 2;
     state.Cstep[i] = 0;
     state.Step[i] = Math.random() * 0.1 + 0.05;
-  }, []);
+   }, []);
 
   const checkCollisions = useCallback(() => {
     const state = gameState.current;
@@ -54,7 +54,7 @@ function Minigame3Page() {
       if (state.Ypos[i] >= 635 && state.Ypos[i] <= 670) {
         const itemLeft = state.Xpos[i];
         const basketRight = state.basketLeft + 64;
-        
+           
         if (itemLeft >= state.basketLeft - 10 && itemLeft <= basketRight + 10) {
           setScore(prev => prev + 10);
           state.caught[i] = true;
@@ -62,7 +62,7 @@ function Minigame3Page() {
           item.style.transform = 'scale(1.5)';
           item.style.opacity = '0.5';
           setTimeout(() => {
-            item.style.display = 'none';
+             item.style.display = 'none';
           }, 100);
           
           setTimeout(() => resetItem(i), 500);
@@ -70,7 +70,6 @@ function Minigame3Page() {
       }
     }
   }, [resetItem]);
-
   const fall = useCallback(() => {
     if (!gameRunningRef.current) return;
     const state = gameState.current;
@@ -90,7 +89,7 @@ function Minigame3Page() {
             const item = itemsRef.current[i];
             if (item && item.style.display !== 'none') {
                 item.style.left = Math.max(0, Math.min(700, state.Xpos[i])) + 'px';
-                item.style.top = state.Ypos[i] + 'px';
+                 item.style.top = state.Ypos[i] + 'px';
             }
         }
         state.Cstep[i] += state.Step[i];
@@ -99,7 +98,6 @@ function Minigame3Page() {
     checkCollisions();
     state.fallTimeout = setTimeout(fall, 30);
   }, [checkCollisions, resetItem]);
-  
   const gameRunningRef = useRef(gameRunning);
   useEffect(() => {
     gameRunningRef.current = gameRunning;
@@ -107,8 +105,6 @@ function Minigame3Page() {
         fall();
     }
   }, [gameRunning, fall]);
-
-
   const startGame = useCallback(() => {
     setScore(0);
     setTimeLeft(INITIAL_TIME);
@@ -126,7 +122,7 @@ function Minigame3Page() {
 
     state.timerInterval = setInterval(() => {
         setTimeLeft(prev => {
-            if (prev <= 1) {
+             if (prev <= 1) {
                 clearInterval(state.timerInterval);
                 setGameRunning(false);
                 setIsGameOver(true);
@@ -136,7 +132,6 @@ function Minigame3Page() {
         });
     }, 1000);
   }, [resetItem]);
-
   useEffect(() => {
     const state = gameState.current;
     
@@ -146,7 +141,7 @@ function Minigame3Page() {
             state.basketLeft -= 15;
         }
         if (e.keyCode === 39 && state.basketLeft < 760 - 64) { // Right
-            state.basketLeft += 15;
+             state.basketLeft += 15;
         }
         if(basketRef.current) basketRef.current.style.left = state.basketLeft + 'px';
         checkCollisions();
@@ -162,11 +157,10 @@ function Minigame3Page() {
 
     return () => {
         document.removeEventListener('keydown', keyListener);
-        clearTimeout(state.fallTimeout);
+         clearTimeout(state.fallTimeout);
         clearInterval(state.timerInterval);
     };
   }, [checkCollisions, resetItem]);
-
   return (
     <div className="minigame3-container">
       <div id="gameContainer">
@@ -175,7 +169,7 @@ function Minigame3Page() {
              <div 
                 key={i} 
                 ref={el => itemsRef.current[i] = el}
-                id={`si${i}`}
+                 id={`si${i}`}
                 className="fallingItem"
              >
                 {ITEM_TYPES[i % ITEM_TYPES.length]}
@@ -183,7 +177,7 @@ function Minigame3Page() {
            ))}
         </div>
         <div ref={basketRef} id="basket"></div>
-        <div id="scoreBoard">
+         <div id="scoreBoard">
           <div>Score: <span id="score">{score}</span></div>
           <div>Time: <span id="timeLeft">{timeLeft}</span>s</div>
         </div>
@@ -196,7 +190,8 @@ function Minigame3Page() {
             <h2>Game Over!</h2>
             <p>Final Score: <span id="finalScore">{score}</span></p>
             <button onClick={startGame}>Play Again</button>
-            <Link to="/main" className="btn btn-info w-50 mt-4" style={{display: 'block'}}>Exit to Main Game</Link>
+            {/* DIUBAH: Tambahkan properti `state` ke Link */}
+            <Link to="/main" state={{ ...location.state, fromMinigame: true }} className="btn btn-info w-50 mt-4" style={{display: 'block'}}>Exit to Main Game</Link>
           </div>
         )}
         
@@ -204,9 +199,10 @@ function Minigame3Page() {
              <div id="gameOver" style={{ display: 'block' }}>
                 <h2>Insect Catcher</h2>
                 <button onClick={startGame}>Start Game</button>
-                <Link to="/main" className="btn btn-info w-50 mt-4" style={{display: 'block'}}>Exit to Main Game</Link>
+                {/* DIUBAH: Tambahkan properti `state` ke Link */}
+                <Link to="/main" state={{ ...location.state, fromMinigame: true }} className="btn btn-info w-50 mt-4" style={{display: 'block'}}>Exit to Main Game</Link>
             </div>
-        )}
+         )}
       </div>
     </div>
   );
