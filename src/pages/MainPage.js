@@ -27,7 +27,6 @@ const KESENANGAN_DECREMENT = 3;
 const KEBERSIHAN_DECREMENT = 1;
 const FOOD_RECOVERY = 5;
 const MAX_ITEM_STACK = 64;
-
 const mapDetails = {
   world: {
     imageSrc: mapBackground,
@@ -43,7 +42,8 @@ const mapDetails = {
   },
    swamp: {
     imageSrc: swampMapBackground,
-    initialPlayerPos: { x: 955, y: 550 },
+    initialPlayerPos: { x: 955, 
+    y: 550 },
   },
   caves: {
     imageSrc: cavesMapBackground,
@@ -54,7 +54,6 @@ const mapDetails = {
     initialPlayerPos: { x: 285, y: 260 },
   },
 };
-
 const DEFAULT_STATS = {
   makan: 60,
   tidur: 80,
@@ -62,11 +61,9 @@ const DEFAULT_STATS = {
   kebersihan: 70,
   money: 50,
 };
-
 function MainPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  
   // State utama permainan
   const [gameTime, setGameTime] = useState(0);
   const [day, setDay] = useState(1);
@@ -79,10 +76,10 @@ function MainPage() {
   const [isCharacterEating, setIsCharacterEating] = useState(false);
   const [isCharacterBathing, setIsCharacterBathing] = useState(false);
   const [inventory, setInventory] = useState([]);
-  
   // State untuk mengontrol alur permainan
   const [isReady, setIsReady] = useState(false);
   const gameTickIntervalRef = useRef(null);
+  const characterPositionRef = useRef(characterSpawnPosition);
 
   // EFEK UTAMA: Menangani inisialisasi awal dan pemulihan state dari minigame
   useEffect(() => {
@@ -96,7 +93,8 @@ function MainPage() {
       setStats(stats);
       setGameTime(gameTime);
       setDay(day);
-      setInventory(inventory);
+     
+       setInventory(inventory);
       setCurrentMapKey(currentMapKey);
       setCharacterSpawnPosition(characterPosition);
       
@@ -106,11 +104,10 @@ function MainPage() {
        // Inisialisasi awal saat pertama kali masuk halaman
        const nameFromLobby = location.state?.playerName || 'Player';
        setPlayerName(nameFromLobby);
-    }
+ }
     
     // Tandai bahwa game siap berjalan
     setIsReady(true);
-    
   }, [location, navigate]);
 
   // EFEK: Menjalankan game loop (waktu dan penurunan stat)
@@ -125,7 +122,8 @@ function MainPage() {
     // Mulai interval game tick
     gameTickIntervalRef.current = setInterval(() => {
       setGameTime(prevTime => {
-        const newTime = prevTime + 1;
+        const newTime = prevTime 
+ + 1;
 
         // Stat berkurang secara berkala
         if (newTime % STAT_DECREASE_INTERVAL_SECONDS === 0 && !isCharacterSleeping) {
@@ -133,7 +131,8 @@ function MainPage() {
             ...prevStats,
             makan: Math.max(0, prevStats.makan - MAKAN_DECREMENT),
             tidur: Math.max(0, prevStats.tidur - TIDUR_DECREMENT),
-            kesenangan: Math.max(0, prevStats.kesenangan - KESENANGAN_DECREMENT),
+            kesenangan: Math.max(0, prevStats.kesenangan 
+ - KESENANGAN_DECREMENT),
             kebersihan: Math.max(0, prevStats.kebersihan - KEBERSIHAN_DECREMENT),
           }));
         }
@@ -141,17 +140,16 @@ function MainPage() {
         // Pergantian hari
         if (newTime > 0 && newTime % SECONDS_PER_DAY === 0) {
             setDay(prevDay => prevDay + 1);
-        }
+ }
 
         return newTime;
       });
     }, 1000 / GAME_SPEED);
-
-    // Fungsi cleanup untuk menghentikan interval saat komponen unmount
+  // Fungsi cleanup untuk menghentikan interval saat komponen unmount
     return () => {
       if (gameTickIntervalRef.current) {
         clearInterval(gameTickIntervalRef.current);
-      }
+ }
     };
   }, [isReady, isCharacterSleeping]);
 
@@ -164,7 +162,6 @@ function MainPage() {
       navigate('/gameover', { replace: true, state: {} });
     }
   }, [stats, isReady, navigate]);
-
   // HANDLER: Transisi antar peta atau masuk minigame
   const handleMapTransitionRequest = useCallback((targetKey, charPos = null) => {
     if (!isReady) {
@@ -177,7 +174,7 @@ function MainPage() {
     if (minigameTriggers.includes(targetKey)) {
         const minigameRoute = '/' + targetKey.replace('_trigger', '');
         
-        // 1. Kemas state saat ini untuk disimpan
+        // 1. Kemas state saat ini untuk 
         const gameStateToSave = {
             stats,
             gameTime,
@@ -187,11 +184,11 @@ function MainPage() {
             characterPosition: charPos, // Simpan posisi karakter saat ini
         };
 
-        console.log(`Navigasi ke ${minigameRoute}. Menyimpan state:`, gameStateToSave);
+  
+       console.log(`Navigasi ke ${minigameRoute}. Menyimpan state:`, gameStateToSave);
         
         // 2. Navigasi ke minigame dengan membawa state
         navigate(minigameRoute, { state: { previousGameState: gameStateToSave } });
-
     } else if (mapDetails[targetKey]) {
       // Logika transisi antar peta biasa
       let newSpawnPos = mapDetails[targetKey].initialPlayerPos;
@@ -211,7 +208,6 @@ function MainPage() {
       console.error("Kunci peta atau trigger tidak ada:", targetKey);
     }
   }, [isReady, currentMapKey, navigate, stats, gameTime, day, inventory]);
-
   // HANDLER: Mengambil item dari peta
   const handleItemPickup = useCallback((itemType) => {
     if (!isReady) return;
@@ -225,7 +221,8 @@ function MainPage() {
 
       if (existingItemIndex > -1) {
         if (newInventory[existingItemIndex].quantity < MAX_ITEM_STACK) {
-           newInventory[existingItemIndex].quantity += 1;
+           newInventory[existingItemIndex].quantity += 
+ 1;
         } else {
           console.log("Tumpukan item sudah penuh!");
         }
@@ -235,11 +232,11 @@ function MainPage() {
         } else {
           console.log("Inventaris penuh!");
         }
+ 
       }
       return newInventory;
     });
   }, [isReady]);
-
   // HANDLER: Menggunakan item dari inventaris
   const handleUseItem = useCallback((slotIndex) => {
     if (!isReady) return;
@@ -257,6 +254,7 @@ function MainPage() {
         makan: Math.min(100, prevStats.makan + FOOD_RECOVERY),
        }));
 
+      
       item.quantity -= 1;
 
       if (item.quantity <= 0) {
@@ -266,7 +264,6 @@ function MainPage() {
       setInventory(newInventory);
     }
   }, [inventory, isReady]);
-
   // ... (Handler lainnya tetap sama: handleMakan, handleBermain, dll.)
   const handleMakan = () => {
     if (!isReady) return;
@@ -280,7 +277,6 @@ function MainPage() {
         console.log("Uang tidak cukup untuk makan!");
     }
   };
-
   const handleBermain = () => {
     if (!isReady) return;
     setStats(prevStats => ({ 
@@ -295,25 +291,21 @@ function MainPage() {
     if (!isReady) return;
     setStats(prevStats => ({ ...prevStats, tidur: Math.min(prevStats.tidur + 30, 100), kesenangan: Math.max(0, prevStats.kesenangan - 5) }));
   };
-
   const handleBersih = () => {
       if (!isReady) return;
       setStats(prevStats => ({ ...prevStats, kebersihan: Math.min(prevStats.kebersihan + 40, 100) }));
   };
-
   const handleBackToLobby = () => {
     if (!isReady) return;
     console.log("Kembali ke Lobby. Game state will NOT be saved.");
     navigate('/lobby', { replace: true, state: {} });
   };
-  
   const handleInteractionAvailableFromCanvas = useCallback((type) => {
     if (!isReady) return;
     if (!isCharacterSleeping && !isCharacterEating && !isCharacterBathing) {
       setAvailableInteractionType(type);
     }
   },[isCharacterSleeping, isCharacterEating, isCharacterBathing, isReady]);
-
   const handleSleepInBed = useCallback(() => {
     if (!isReady || isCharacterSleeping || availableInteractionType !== 99) return;
     setIsCharacterSleeping(true);
@@ -326,11 +318,11 @@ function MainPage() {
         ...prevStats,
         tidur: 100,
         makan: Math.max(0, prevStats.makan - 10),
+  
       }));
       setIsCharacterSleeping(false);
     }, 5000);
   }, [isCharacterSleeping, availableInteractionType, isReady]);
-
   const handleMakanInteraction = useCallback(() => {
     if (!isReady || isCharacterEating || availableInteractionType !== 98) return;
     setIsCharacterEating(true);
@@ -341,7 +333,6 @@ function MainPage() {
       setIsCharacterEating(false);
     }, 4000);
   }, [isCharacterEating, availableInteractionType, isReady]);
-
   const handleBersihInteraction = useCallback(() => {
     if (!isReady || isCharacterBathing || availableInteractionType !== 97) return;
     setIsCharacterBathing(true);
@@ -351,7 +342,6 @@ function MainPage() {
       setIsCharacterBathing(false);
     }, 4000);
   }, [isCharacterBathing, availableInteractionType, isReady]);
-
   // Tampilan loading jika game belum siap
   if (!isReady || !mapDetails[currentMapKey]?.imageSrc) {
     return (
@@ -369,17 +359,20 @@ function MainPage() {
             <div className="col-9">
               <PlayerStats playerName={playerName} day={day} gameTime={gameTime} money={stats.money} />
               <StatusBarGrid stats={stats} />
-              <div className="ruangmainnya bg-white p-4 rounded shadow">
+              <div 
+ className="ruangmainnya bg-white p-4 rounded shadow">
                 <GameCanvas
                   mapImageSrc={mapDetails[currentMapKey].imageSrc}
                   characterImageSrc={playerCharacterSprite}
                   currentMapKey={currentMapKey}
                   initialCharacterPosition={characterSpawnPosition}
+                  characterPositionRef={characterPositionRef}
                   onMapTransitionRequest={handleMapTransitionRequest}
                   onInteractionAvailable={handleInteractionAvailableFromCanvas}
                   isCharacterCurrentlySleeping={isCharacterSleeping}
                   onBedInteraction={handleSleepInBed}
                   onItemPickup={handleItemPickup}
+                  
                   isCharacterCurrentlyEating={isCharacterEating}
                   onMakanInteraction={handleMakanInteraction}
                   isCharacterCurrentlyBathing={isCharacterBathing}
@@ -387,19 +380,22 @@ function MainPage() {
                 />
               </div>
             </div>
-            <div className="col-3 align-items-start flex-column p-4 action-panel img-fluid">
+    
+             <div className="col-3 align-items-start flex-column p-4 action-panel img-fluid">
               <ActionPanel
                 onMakan={handleMakan}
                 onBermain={handleBermain}
                 onTidur={handleQuickNap}
                 onBersih={handleBersih}
-                showTidurButton={!isCharacterSleeping}
+        
+                 showTidurButton={!isCharacterSleeping}
                 showBersihButton={true}
                 currentMapKey={currentMapKey}
                 availableInteractionType={availableInteractionType}
                 onEnterHouse={() => handleMapTransitionRequest('house')}
                 onExitHouse={() => handleMapTransitionRequest('world')}
-                onEnterSwamp={() => handleMapTransitionRequest('swamp')}
+        
+                 onEnterSwamp={() => handleMapTransitionRequest('swamp')}
                 onExitSwamp={() => handleMapTransitionRequest('world')}
                 onEnterCave={() => handleMapTransitionRequest('caves')}
                 onExitCave={() => handleMapTransitionRequest('world')}
@@ -408,11 +404,16 @@ function MainPage() {
                 onSleepInBed={handleSleepInBed}
                 onMakanAtTable={handleMakanInteraction}
                 onBathInBathroom={handleBersihInteraction}
+                onEnterMinigame1={() => handleMapTransitionRequest('minigame1_trigger', characterPositionRef.current)}
+                onEnterMinigame2={() => handleMapTransitionRequest('minigame2_trigger', characterPositionRef.current)}
+                onEnterMinigame3={() => handleMapTransitionRequest('minigame3_trigger', characterPositionRef.current)}
+                onPickupItem={() => handleItemPickup(availableInteractionType)} 
               />
               
               <InventoryPanel inventory={inventory} onUseItem={handleUseItem} />
 
-               <div className="separator my-4 bg-white" style={{ height: '2px', opacity: '0.5' }}></div>
+       
+                 <div className="separator my-4 bg-white" style={{ height: '2px', opacity: '0.5' }}></div>
               <MovementControls />
               <button onClick={handleBackToLobby} className="btn btn-info w-100 mt-4">Kembali ke Lobby</button>
             </div>

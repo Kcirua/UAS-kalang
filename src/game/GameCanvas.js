@@ -1,3 +1,4 @@
+// src/game/GameCanvas.js
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import {
   VIEWPORT_WIDTH, VIEWPORT_HEIGHT, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT,
@@ -16,6 +17,7 @@ function GameCanvas({
   characterImageSrc,
   currentMapKey,
   initialCharacterPosition,
+  characterPositionRef, // [!code ++]
   onMapTransitionRequest,
   onInteractionAvailable,
   isCharacterCurrentlySleeping,
@@ -53,6 +55,13 @@ function GameCanvas({
   });
   const activeCollisionMapConfig = collisionMapsData[currentMapKey];
 
+  // Efek untuk memperbarui Ref dengan posisi terbaru karakter
+  useEffect(() => { // [!code ++]
+    if (characterPositionRef) { // [!code ++]
+      characterPositionRef.current = characterWorldPosition; // [!code ++]
+    } // [!code ++]
+  }, [characterWorldPosition, characterPositionRef]); // [!code ++]
+
   useEffect(() => {
     if (setSleepingState) {
       setSleepingState(isCharacterCurrentlySleeping);
@@ -63,13 +72,11 @@ function GameCanvas({
       setEatingState(isCharacterCurrentlyEating);
     }
   }, [isCharacterCurrentlyEating, setEatingState]);
-
   useEffect(() => {
     if (setBathingState) {
       setBathingState(isCharacterCurrentlyBathing);
     }
   }, [isCharacterCurrentlyBathing, setBathingState]);
-
   const handleEKeyInteraction = useCallback(() => {
     if (isSleeping) return;
 
@@ -82,7 +89,8 @@ function GameCanvas({
     } else if (interactionTileTypeForEKey === 3) {
       if (currentMapKey === 'world') {
         onMapTransitionRequest('swamp');
-      } else if (currentMapKey === 'swamp') {
+     
+       } else if (currentMapKey === 'swamp') {
         onMapTransitionRequest('world');
       }
     } else if (interactionTileTypeForEKey === 4) {
@@ -93,7 +101,8 @@ function GameCanvas({
       if (currentMapKey === 'house') {
         onMapTransitionRequest('bathroom');
       } else if (currentMapKey === 'bathroom') {
-          onMapTransitionRequest('house');
+     
+           onMapTransitionRequest('house');
       }
     } else if (interactionTileTypeForEKey === 99) {
       if (onBedInteraction) {
@@ -122,7 +131,6 @@ function GameCanvas({
         }
     }
   }, [currentMapKey, onMapTransitionRequest, interactionTileTypeForEKey, onBedInteraction, onMakanInteraction, onBersihInteraction, isSleeping, characterWorldPosition, onItemPickup]);
-
   useEffect(() => {
     if (!assetsReady || !mapDimensions.width || !mapDimensions.height || !activeCollisionMapConfig) {
       setCanInteractWithEKey(false);
@@ -135,14 +143,17 @@ function GameCanvas({
         currentDetectedTileType = getOverlappingTileType(
             characterWorldPosition.x, characterWorldPosition.y,
             CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT, activeCollisionMapConfig
-        );
+  
+         );
     }
     
     if (onInteractionAvailable) {
       onInteractionAvailable(currentDetectedTileType);
     }
 
-    if (!isSleeping && !isCharacterCurrentlyEating && !isCharacterCurrentlyBathing && (currentDetectedTileType === 2 || currentDetectedTileType === 3 || currentDetectedTileType === 4 || currentDetectedTileType === 5 || currentDetectedTileType === 99 || currentDetectedTileType === 98 || currentDetectedTileType === 97 || currentDetectedTileType === 50 || currentDetectedTileType === 51 || currentDetectedTileType === 52 || ITEM_TYPES[currentDetectedTileType])) {
+    if (!isSleeping && !isCharacterCurrentlyEating && !isCharacterCurrentlyBathing && (currentDetectedTileType === 2 || currentDetectedTileType === 3 || currentDetectedTileType === 4 || currentDetectedTileType === 5 || currentDetectedTileType === 99 || currentDetectedTileType === 98 ||
+    currentDetectedTileType === 97 || currentDetectedTileType === 50 || currentDetectedTileType === 51 || currentDetectedTileType === 52 ||
+    ITEM_TYPES[currentDetectedTileType])) {
       setCanInteractWithEKey(true);
       setInteractionTileTypeForEKey(currentDetectedTileType);
     } else {
@@ -150,7 +161,6 @@ function GameCanvas({
       setInteractionTileTypeForEKey(0);
     }
   }, [characterWorldPosition, assetsReady, mapDimensions, activeCollisionMapConfig, onInteractionAvailable, isSleeping, isCharacterCurrentlyEating, isCharacterCurrentlyBathing, CHAR_DISPLAY_WIDTH, CHAR_DISPLAY_HEIGHT]);
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -167,6 +177,7 @@ function GameCanvas({
         interactionKeyRef.current = false;
       }
 
+      
       if (!isSleeping && !isCharacterCurrentlyEating && !isCharacterCurrentlyBathing) {
         const activeKeys = activeKeysRef.current;
         const currentX = characterWorldPosition.x;
@@ -175,7 +186,8 @@ function GameCanvas({
         let attemptedMoveY = currentY;
 
         if (activeKeys && activeKeys.size > 0 && mapDimensions.width > 0 && mapDimensions.height > 0 && activeCollisionMapConfig) {
-          if (activeKeys.has('arrowup') || activeKeys.has('w')) attemptedMoveY -= CHARACTER_STEP_SIZE;
+          if (activeKeys.has('arrowup') ||
+          activeKeys.has('w')) attemptedMoveY -= CHARACTER_STEP_SIZE;
           if (activeKeys.has('arrowdown') || activeKeys.has('s')) attemptedMoveY += CHARACTER_STEP_SIZE;
           if (activeKeys.has('arrowleft') || activeKeys.has('a')) attemptedMoveX -= CHARACTER_STEP_SIZE;
           if (activeKeys.has('arrowright') || activeKeys.has('d')) attemptedMoveX += CHARACTER_STEP_SIZE;
@@ -266,7 +278,6 @@ function GameCanvas({
         
         let animSourceX = currentFrame * spriteConfigToUse.frameWidth;
         let animSourceY;
-        
         if (isSleeping || isCharacterCurrentlyEating || isCharacterCurrentlyBathing || !isMoving) {
           animSourceY = spriteConfigToUse.rowIndex * spriteConfigToUse.frameHeight;
         } else { 
