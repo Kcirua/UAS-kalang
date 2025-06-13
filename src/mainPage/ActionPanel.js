@@ -56,12 +56,12 @@ const ActionPanel = React.memo(({
           )}
           {availableInteractionType === 5 && currentMapKey === 'house' && (
              <div className="p-1">
-              <button className="btn btn-info w-100 mb-2" onClick={onEnterBathroom}>Masuk Kamar Mandi</button>
+              <button className="btn btn-primary w-100 mb-2" onClick={onEnterBathroom}>Masuk Kamar Mandi</button>
             </div>
           )}
           {availableInteractionType === 5 && currentMapKey === 'bathroom' && (
              <div className="p-1">
-              <button className="btn btn-info w-100 mb-2" onClick={onExitBathroom}>Keluar Kamar Mandi</button>
+              <button className="btn btn-primary w-100 mb-2" onClick={onExitBathroom}>Keluar Kamar Mandi</button>
             </div>
           )}
           {availableInteractionType === 99 && (
@@ -71,12 +71,12 @@ const ActionPanel = React.memo(({
           )}
           {availableInteractionType === 98 && (
             <div className="p-1">
-              <button className="btn btn-success w-100 mb-2" onClick={onMakanAtTable}>Makan</button>
+              <button className="btn btn-primary w-100 mb-2" onClick={onMakanAtTable}>Makan</button>
             </div>
           )}
           {availableInteractionType === 97 && (
             <div className="p-1">
-              <button className="btn btn-info w-100 mb-2" onClick={onBathInBathroom}>Mandi</button>
+              <button className="btn btn-primary w-100 mb-2" onClick={onBathInBathroom}>Mandi</button>
             </div>
           )}
         </div>
