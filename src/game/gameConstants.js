@@ -1,6 +1,6 @@
 // src/game/gameConstants.js
 
-export const DEBUG_DRAW_COLLISION = true;
+export const DEBUG_DRAW_COLLISION = false;
 
 // Ukuran viewport canvas (jendela game yang terlihat)
 export const VIEWPORT_WIDTH = 760; //
